@@ -1,0 +1,40 @@
+# ===================================
+# LLM Quantization Study - Dependencies
+# Optimizado para Apple M4
+# ===================================
+
+# === Medición de Energía ===
+codecarbon==2.3.4
+
+# === LLM Inference ===
+llama-cpp-python==0.2.56
+
+# === Data Science ===
+numpy==1.26.3
+pandas==2.2.0
+
+# === Visualización ===
+matplotlib==3.8.2
+seaborn==0.13.1
+plotly==5.18.0
+
+# === Utilidades ===
+tqdm==4.66.1
+python-dotenv==1.0.1
+pyyaml==6.0.1
+
+# === Notebooks ===
+jupyter==1.0.0
+ipykernel==6.29.0
+notebook==7.0.7
+
+# === Code Quality ===
+black==24.1.1
+flake8==7.0.0
+
+# === Testing ===
+pytest==7.4.4
+pytest-cov==4.1.0
+
+# === Hugging Face ===
+huggingface-hub==0.20.3

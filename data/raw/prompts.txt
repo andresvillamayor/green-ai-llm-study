@@ -1,0 +1,10 @@
+¿Qué es la inteligencia artificial?
+Explica el concepto de machine learning en términos simples
+¿Cuáles son las aplicaciones más comunes de la IA hoy en día?
+Describe las diferencias entre IA débil y IA fuerte
+¿Qué es el procesamiento de lenguaje natural?
+Explica cómo funcionan las redes neuronales
+¿Qué es el deep learning?
+¿Cuáles son los desafíos éticos de la inteligencia artificial?
+Describe el papel de los datos en el entrenamiento de modelos de IA
+¿Qué es un Large Language Model?
