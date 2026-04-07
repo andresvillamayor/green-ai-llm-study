@@ -1,0 +1,31 @@
+# Configuración de prompts para experimentos Green AI
+tasks:
+  texto:
+    description: "Generación de texto narrativo y descriptivo"
+    expected_tokens: 100
+    prompts:
+      - "Escribe una historia corta sobre un viaje espacial."
+      - "Describe el proceso de fotosíntesis en plantas."
+      - "Explica la teoría de la relatividad de Einstein."
+      - "Cuenta una anécdota sobre la historia de la computación."
+      - "Describe las características de la civilización maya."
+  
+  matematicas:
+    description: "Resolución de problemas matemáticos"
+    expected_tokens: 80
+    prompts:
+      - "Resuelve: Si x + 5 = 12, ¿cuánto vale x?"
+      - "Calcula el área de un círculo con radio 7 cm."
+      - "Resuelve la ecuación: x² - 5x + 6 = 0"
+      - "Encuentra la derivada de f(x) = 3x² + 2x - 1"
+      - "Calcula la integral de (2x + 3)dx"
+  
+  programacion:
+    description: "Generación de código Python"
+    expected_tokens: 150
+    prompts:
+      - "Escribe una función Python para calcular factorial."
+      - "Crea una función que determine si un número es primo."
+      - "Implementa ordenamiento burbuja en Python."
+      - "Escribe código para invertir una cadena de texto."
+      - "Crea función para el máximo común divisor."
