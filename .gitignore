@@ -1,8 +1,20 @@
+# Modelos (pesan varios GB, no subir a Git)
+models/
+*.gguf
+*.safetensors
+
+# Entorno virtual y caché
+venv/
 __pycache__/
 *.pyc
-venv/
-models/*.gguf
-results/measurements/*.csv
-.DS_Store
-.env
 *.egg-info/
+
+# Logs y mediciones temporales
+*.log
+results/measurements/
+results/comprehensive_benchmark_results.json
+results/benchmark_comparativa_crudo.csv
+
+# Configuración local
+.vscode/
+.DS_Store

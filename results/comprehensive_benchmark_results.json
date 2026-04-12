@@ -1,0 +1,387 @@
+[
+  {
+    "success": true,
+    "timestamp": "2026-04-12T18:14:56.254483",
+    "model": {
+      "name": "Qwen2.5-7B",
+      "quantization": "INT4",
+      "path": "models/qwen2.5-7b/Qwen2.5-7B-Instruct-Q4_K_M.gguf",
+      "framework": "LLMRunner"
+    },
+    "inference": {
+      "tokens_generated": 100,
+      "inference_time_s": 5.074,
+      "tokens_per_sec": 19.71,
+      "prompt_tokens": 19,
+      "temperature": 0.1
+    },
+    "hardware": {
+      "cpu_power_avg_w": 0.0,
+      "gpu_power_avg_w": 0.0,
+      "ane_power_avg_w": 0.0,
+      "total_power_avg_w": 0.0,
+      "cpu_freq_avg_ghz": 0.0,
+      "cpu_percent_avg": 0.0,
+      "total_samples": 0
+    },
+    "energy": {
+      "energy_wh": 0.0564,
+      "energy_kwh": 5.6e-05,
+      "power_avg_w": 40,
+      "duration_s": 5.07,
+      "emissions": {
+        "PY": {
+          "name": "Paraguay",
+          "factor_g_kwh": 70,
+          "co2_g": 0.0039,
+          "source": "Electricity Maps"
+        },
+        "ES": {
+          "name": "España",
+          "factor_g_kwh": 245,
+          "co2_g": 0.0138,
+          "source": "ESIOS/REE"
+        },
+        "FR": {
+          "name": "Francia",
+          "factor_g_kwh": 65,
+          "co2_g": 0.0037,
+          "source": "IEA"
+        },
+        "DE": {
+          "name": "Alemania",
+          "factor_g_kwh": 400,
+          "co2_g": 0.0226,
+          "source": "IEA"
+        },
+        "US": {
+          "name": "Estados Unidos",
+          "factor_g_kwh": 415,
+          "co2_g": 0.0234,
+          "source": "IEA"
+        },
+        "BR": {
+          "name": "Brasil",
+          "factor_g_kwh": 100,
+          "co2_g": 0.0056,
+          "source": "IEA"
+        },
+        "AR": {
+          "name": "Argentina",
+          "factor_g_kwh": 350,
+          "co2_g": 0.0197,
+          "source": "IEA"
+        }
+      }
+    },
+    "load_time_s": 4.967
+  },
+  {
+    "success": true,
+    "timestamp": "2026-04-12T18:15:14.937303",
+    "model": {
+      "name": "Qwen2.5-7B",
+      "quantization": "INT8",
+      "path": "models/qwen2.5-7b/Qwen2.5-7B-Instruct-Q8_0.gguf",
+      "framework": "LLMRunner"
+    },
+    "inference": {
+      "tokens_generated": 100,
+      "inference_time_s": 7.953,
+      "tokens_per_sec": 12.57,
+      "prompt_tokens": 19,
+      "temperature": 0.1
+    },
+    "hardware": {
+      "cpu_power_avg_w": 0.0,
+      "gpu_power_avg_w": 0.0,
+      "ane_power_avg_w": 0.0,
+      "total_power_avg_w": 0.0,
+      "cpu_freq_avg_ghz": 0.0,
+      "cpu_percent_avg": 0.0,
+      "total_samples": 0
+    },
+    "energy": {
+      "energy_wh": 0.0884,
+      "energy_kwh": 8.8e-05,
+      "power_avg_w": 40,
+      "duration_s": 7.95,
+      "emissions": {
+        "PY": {
+          "name": "Paraguay",
+          "factor_g_kwh": 70,
+          "co2_g": 0.0062,
+          "source": "Electricity Maps"
+        },
+        "ES": {
+          "name": "España",
+          "factor_g_kwh": 245,
+          "co2_g": 0.0217,
+          "source": "ESIOS/REE"
+        },
+        "FR": {
+          "name": "Francia",
+          "factor_g_kwh": 65,
+          "co2_g": 0.0057,
+          "source": "IEA"
+        },
+        "DE": {
+          "name": "Alemania",
+          "factor_g_kwh": 400,
+          "co2_g": 0.0353,
+          "source": "IEA"
+        },
+        "US": {
+          "name": "Estados Unidos",
+          "factor_g_kwh": 415,
+          "co2_g": 0.0367,
+          "source": "IEA"
+        },
+        "BR": {
+          "name": "Brasil",
+          "factor_g_kwh": 100,
+          "co2_g": 0.0088,
+          "source": "IEA"
+        },
+        "AR": {
+          "name": "Argentina",
+          "factor_g_kwh": 350,
+          "co2_g": 0.0309,
+          "source": "IEA"
+        }
+      }
+    },
+    "load_time_s": 10.599
+  },
+  {
+    "success": true,
+    "timestamp": "2026-04-12T18:15:24.582247",
+    "model": {
+      "name": "Llama-2-7B",
+      "quantization": "INT4",
+      "path": "models/llama-2-7b/Q4_K_M.gguf",
+      "framework": "LLMRunner"
+    },
+    "inference": {
+      "tokens_generated": 100,
+      "inference_time_s": 4.446,
+      "tokens_per_sec": 22.49,
+      "prompt_tokens": 22,
+      "temperature": 0.1
+    },
+    "hardware": {
+      "cpu_power_avg_w": 0.0,
+      "gpu_power_avg_w": 0.0,
+      "ane_power_avg_w": 0.0,
+      "total_power_avg_w": 0.0,
+      "cpu_freq_avg_ghz": 0.0,
+      "cpu_percent_avg": 0.0,
+      "total_samples": 0
+    },
+    "energy": {
+      "energy_wh": 0.0494,
+      "energy_kwh": 4.9e-05,
+      "power_avg_w": 40,
+      "duration_s": 4.45,
+      "emissions": {
+        "PY": {
+          "name": "Paraguay",
+          "factor_g_kwh": 70,
+          "co2_g": 0.0035,
+          "source": "Electricity Maps"
+        },
+        "ES": {
+          "name": "España",
+          "factor_g_kwh": 245,
+          "co2_g": 0.0121,
+          "source": "ESIOS/REE"
+        },
+        "FR": {
+          "name": "Francia",
+          "factor_g_kwh": 65,
+          "co2_g": 0.0032,
+          "source": "IEA"
+        },
+        "DE": {
+          "name": "Alemania",
+          "factor_g_kwh": 400,
+          "co2_g": 0.0198,
+          "source": "IEA"
+        },
+        "US": {
+          "name": "Estados Unidos",
+          "factor_g_kwh": 415,
+          "co2_g": 0.0205,
+          "source": "IEA"
+        },
+        "BR": {
+          "name": "Brasil",
+          "factor_g_kwh": 100,
+          "co2_g": 0.0049,
+          "source": "IEA"
+        },
+        "AR": {
+          "name": "Argentina",
+          "factor_g_kwh": 350,
+          "co2_g": 0.0173,
+          "source": "IEA"
+        }
+      }
+    },
+    "load_time_s": 4.899
+  },
+  {
+    "success": true,
+    "timestamp": "2026-04-12T18:15:35.819905",
+    "model": {
+      "name": "Llama-2-7B",
+      "quantization": "INT8",
+      "path": "models/llama-2-7b/llama-2-7b.Q8_0.gguf",
+      "framework": "LLMRunner"
+    },
+    "inference": {
+      "tokens_generated": 100,
+      "inference_time_s": 7.127,
+      "tokens_per_sec": 14.03,
+      "prompt_tokens": 22,
+      "temperature": 0.1
+    },
+    "hardware": {
+      "cpu_power_avg_w": 0.0,
+      "gpu_power_avg_w": 0.0,
+      "ane_power_avg_w": 0.0,
+      "total_power_avg_w": 0.0,
+      "cpu_freq_avg_ghz": 0.0,
+      "cpu_percent_avg": 0.0,
+      "total_samples": 0
+    },
+    "energy": {
+      "energy_wh": 0.0792,
+      "energy_kwh": 7.9e-05,
+      "power_avg_w": 40,
+      "duration_s": 7.13,
+      "emissions": {
+        "PY": {
+          "name": "Paraguay",
+          "factor_g_kwh": 70,
+          "co2_g": 0.0055,
+          "source": "Electricity Maps"
+        },
+        "ES": {
+          "name": "España",
+          "factor_g_kwh": 245,
+          "co2_g": 0.0194,
+          "source": "ESIOS/REE"
+        },
+        "FR": {
+          "name": "Francia",
+          "factor_g_kwh": 65,
+          "co2_g": 0.0051,
+          "source": "IEA"
+        },
+        "DE": {
+          "name": "Alemania",
+          "factor_g_kwh": 400,
+          "co2_g": 0.0317,
+          "source": "IEA"
+        },
+        "US": {
+          "name": "Estados Unidos",
+          "factor_g_kwh": 415,
+          "co2_g": 0.0329,
+          "source": "IEA"
+        },
+        "BR": {
+          "name": "Brasil",
+          "factor_g_kwh": 100,
+          "co2_g": 0.0079,
+          "source": "IEA"
+        },
+        "AR": {
+          "name": "Argentina",
+          "factor_g_kwh": 350,
+          "co2_g": 0.0277,
+          "source": "IEA"
+        }
+      }
+    },
+    "load_time_s": 3.872
+  },
+  {
+    "success": true,
+    "timestamp": "2026-04-12T18:15:44.009412",
+    "model": {
+      "name": "Qwen2.5-7B-MLX",
+      "quantization": "INT4",
+      "path": "mlx-community/Qwen2.5-7B-Instruct-4bit",
+      "framework": "MLXRunner"
+    },
+    "inference": {
+      "tokens_generated": 100,
+      "inference_time_s": 4.897,
+      "tokens_per_sec": 20.42,
+      "prompt_tokens": 19,
+      "temperature": 0.1
+    },
+    "hardware": {
+      "cpu_power_avg_w": 0.0,
+      "gpu_power_avg_w": 0.0,
+      "ane_power_avg_w": 0.0,
+      "total_power_avg_w": 0.0,
+      "cpu_freq_avg_ghz": 0.0,
+      "cpu_percent_avg": 0.0,
+      "total_samples": 0
+    },
+    "energy": {
+      "energy_wh": 0.0544,
+      "energy_kwh": 5.4e-05,
+      "power_avg_w": 40,
+      "duration_s": 4.9,
+      "emissions": {
+        "PY": {
+          "name": "Paraguay",
+          "factor_g_kwh": 70,
+          "co2_g": 0.0038,
+          "source": "Electricity Maps"
+        },
+        "ES": {
+          "name": "España",
+          "factor_g_kwh": 245,
+          "co2_g": 0.0133,
+          "source": "ESIOS/REE"
+        },
+        "FR": {
+          "name": "Francia",
+          "factor_g_kwh": 65,
+          "co2_g": 0.0035,
+          "source": "IEA"
+        },
+        "DE": {
+          "name": "Alemania",
+          "factor_g_kwh": 400,
+          "co2_g": 0.0218,
+          "source": "IEA"
+        },
+        "US": {
+          "name": "Estados Unidos",
+          "factor_g_kwh": 415,
+          "co2_g": 0.0226,
+          "source": "IEA"
+        },
+        "BR": {
+          "name": "Brasil",
+          "factor_g_kwh": 100,
+          "co2_g": 0.0054,
+          "source": "IEA"
+        },
+        "AR": {
+          "name": "Argentina",
+          "factor_g_kwh": 350,
+          "co2_g": 0.019,
+          "source": "IEA"
+        }
+      }
+    },
+    "load_time_s": 3.249
+  }
+]

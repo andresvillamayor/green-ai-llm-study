@@ -1,0 +1,122 @@
+2026-04-12 18:14:45 - ================================================================================
+2026-04-12 18:14:45 - BENCHMARK COMPREHENSIVO - GREEN AI LLM STUDY
+2026-04-12 18:14:45 - ================================================================================
+2026-04-12 18:14:45 - Fecha: 2026-04-12T18:14:45.973345
+2026-04-12 18:14:45 - Plataforma: macOS-15.6.1-arm64-arm-64bit
+2026-04-12 18:14:45 - Arquitectura: arm64
+2026-04-12 18:14:45 - 
+2026-04-12 18:14:46 - 
+================================================================================
+2026-04-12 18:14:46 - Probando: Qwen2.5-7B (INT4)
+2026-04-12 18:14:46 - ================================================================================
+2026-04-12 18:14:46 - Iniciando benchmark: Qwen2.5-7B (INT4)
+2026-04-12 18:14:46 - Cargando modelo: models/qwen2.5-7b/Qwen2.5-7B-Instruct-Q4_K_M.gguf
+2026-04-12 18:14:46 - Cargando modelo: Qwen2.5-7B-Instruct-Q4_K_M.gguf
+2026-04-12 18:14:51 - Modelo cargado exitosamente en 4.97 segundos
+2026-04-12 18:14:51 - Modelo cargado en 4.97 segundos
+2026-04-12 18:14:51 - PowerMetricsCollector inicializado (intervalo: 100ms)
+2026-04-12 18:14:51 - Iniciando recolección de powermetrics con sudo...
+2026-04-12 18:14:51 - Recolección de powermetrics iniciada (PID: 12700)
+2026-04-12 18:14:51 - Recolección iniciada con powermetrics (sudo)
+2026-04-12 18:14:51 - Iniciando recolección de métricas de hardware...
+2026-04-12 18:14:51 - Generando respuesta (max_tokens=100)
+2026-04-12 18:14:56 - Generados 100 tokens en 5.07 segundos (19.71 tok/s)
+2026-04-12 18:14:56 - Generados 100 tokens en 5.07 segundos (19.71 tok/s)
+2026-04-12 18:14:56 - Deteniendo recolección de powermetrics...
+2026-04-12 18:14:56 - No hay métricas para calcular promedios
+2026-04-12 18:14:56 - PowerMetrics: CPU=0.000W, GPU=0.000W, Total=0.000W
+2026-04-12 18:14:56 - ✅ Benchmark completado: Qwen2.5-7B (INT4)
+2026-04-12 18:14:56 - 
+================================================================================
+2026-04-12 18:14:56 - Probando: Qwen2.5-7B (INT8)
+2026-04-12 18:14:56 - ================================================================================
+2026-04-12 18:14:56 - Iniciando benchmark: Qwen2.5-7B (INT8)
+2026-04-12 18:14:56 - Cargando modelo: models/qwen2.5-7b/Qwen2.5-7B-Instruct-Q8_0.gguf
+2026-04-12 18:14:56 - Cargando modelo: Qwen2.5-7B-Instruct-Q8_0.gguf
+2026-04-12 18:15:06 - Modelo cargado exitosamente en 10.60 segundos
+2026-04-12 18:15:06 - Modelo cargado en 10.60 segundos
+2026-04-12 18:15:06 - PowerMetricsCollector inicializado (intervalo: 100ms)
+2026-04-12 18:15:06 - Iniciando recolección de powermetrics con sudo...
+2026-04-12 18:15:06 - Recolección de powermetrics iniciada (PID: 12722)
+2026-04-12 18:15:06 - Recolección iniciada con powermetrics (sudo)
+2026-04-12 18:15:06 - Iniciando recolección de métricas de hardware...
+2026-04-12 18:15:06 - Generando respuesta (max_tokens=100)
+2026-04-12 18:15:14 - Generados 100 tokens en 7.95 segundos (12.57 tok/s)
+2026-04-12 18:15:14 - Generados 100 tokens en 7.95 segundos (12.57 tok/s)
+2026-04-12 18:15:14 - Deteniendo recolección de powermetrics...
+2026-04-12 18:15:14 - No hay métricas para calcular promedios
+2026-04-12 18:15:14 - PowerMetrics: CPU=0.000W, GPU=0.000W, Total=0.000W
+2026-04-12 18:15:14 - ✅ Benchmark completado: Qwen2.5-7B (INT8)
+2026-04-12 18:15:14 - 
+================================================================================
+2026-04-12 18:15:14 - Probando: Llama-2-7B (INT4)
+2026-04-12 18:15:14 - ================================================================================
+2026-04-12 18:15:14 - Iniciando benchmark: Llama-2-7B (INT4)
+2026-04-12 18:15:14 - Cargando modelo: models/llama-2-7b/Q4_K_M.gguf
+2026-04-12 18:15:14 - Cargando modelo: Q4_K_M.gguf
+2026-04-12 18:15:19 - Modelo cargado exitosamente en 4.90 segundos
+2026-04-12 18:15:19 - Modelo cargado en 4.90 segundos
+2026-04-12 18:15:19 - PowerMetricsCollector inicializado (intervalo: 100ms)
+2026-04-12 18:15:19 - Iniciando recolección de powermetrics con sudo...
+2026-04-12 18:15:20 - Recolección de powermetrics iniciada (PID: 12746)
+2026-04-12 18:15:20 - Recolección iniciada con powermetrics (sudo)
+2026-04-12 18:15:20 - Iniciando recolección de métricas de hardware...
+2026-04-12 18:15:20 - Generando respuesta (max_tokens=100)
+2026-04-12 18:15:24 - Generados 100 tokens en 4.45 segundos (22.49 tok/s)
+2026-04-12 18:15:24 - Generados 100 tokens en 4.45 segundos (22.49 tok/s)
+2026-04-12 18:15:24 - Deteniendo recolección de powermetrics...
+2026-04-12 18:15:24 - No hay métricas para calcular promedios
+2026-04-12 18:15:24 - PowerMetrics: CPU=0.000W, GPU=0.000W, Total=0.000W
+2026-04-12 18:15:24 - ✅ Benchmark completado: Llama-2-7B (INT4)
+2026-04-12 18:15:24 - 
+================================================================================
+2026-04-12 18:15:24 - Probando: Llama-2-7B (INT8)
+2026-04-12 18:15:24 - ================================================================================
+2026-04-12 18:15:24 - Iniciando benchmark: Llama-2-7B (INT8)
+2026-04-12 18:15:24 - Cargando modelo: models/llama-2-7b/llama-2-7b.Q8_0.gguf
+2026-04-12 18:15:24 - Cargando modelo: llama-2-7b.Q8_0.gguf
+2026-04-12 18:15:28 - Modelo cargado exitosamente en 3.87 segundos
+2026-04-12 18:15:28 - Modelo cargado en 3.87 segundos
+2026-04-12 18:15:28 - PowerMetricsCollector inicializado (intervalo: 100ms)
+2026-04-12 18:15:28 - Iniciando recolección de powermetrics con sudo...
+2026-04-12 18:15:28 - Recolección de powermetrics iniciada (PID: 12753)
+2026-04-12 18:15:28 - Recolección iniciada con powermetrics (sudo)
+2026-04-12 18:15:28 - Iniciando recolección de métricas de hardware...
+2026-04-12 18:15:28 - Generando respuesta (max_tokens=100)
+2026-04-12 18:15:35 - Generados 100 tokens en 7.13 segundos (14.03 tok/s)
+2026-04-12 18:15:35 - Generados 100 tokens en 7.13 segundos (14.03 tok/s)
+2026-04-12 18:15:35 - Deteniendo recolección de powermetrics...
+2026-04-12 18:15:35 - No hay métricas para calcular promedios
+2026-04-12 18:15:35 - PowerMetrics: CPU=0.000W, GPU=0.000W, Total=0.000W
+2026-04-12 18:15:35 - ✅ Benchmark completado: Llama-2-7B (INT8)
+2026-04-12 18:15:35 - 
+================================================================================
+2026-04-12 18:15:35 - Probando: Qwen2.5-7B-MLX (INT4)
+2026-04-12 18:15:35 - ================================================================================
+2026-04-12 18:15:35 - Iniciando benchmark: Qwen2.5-7B-MLX (INT4)
+2026-04-12 18:15:35 - Cargando modelo: mlx-community/Qwen2.5-7B-Instruct-4bit
+2026-04-12 18:15:35 - Cargando modelo MLX: mlx-community/Qwen2.5-7B-Instruct-4bit
+2026-04-12 18:15:37 - HTTP Request: GET https://huggingface.co/api/models/mlx-community/Qwen2.5-7B-Instruct-4bit/revision/main "HTTP/1.1 200 OK"
+2026-04-12 18:15:39 - Modelo MLX cargado en 3.25 segundos
+2026-04-12 18:15:39 - Modelo cargado en 3.25 segundos
+2026-04-12 18:15:39 - PowerMetricsCollector inicializado (intervalo: 100ms)
+2026-04-12 18:15:39 - Iniciando recolección de powermetrics con sudo...
+2026-04-12 18:15:39 - Recolección de powermetrics iniciada (PID: 12761)
+2026-04-12 18:15:39 - Recolección iniciada con powermetrics (sudo)
+2026-04-12 18:15:39 - Iniciando recolección de métricas de hardware...
+2026-04-12 18:15:39 - Generando con MLX (max_tokens=100)
+2026-04-12 18:15:39 - Parametro de sampling no reconocido
+2026-04-12 18:15:43 - Generados 100 tokens en 4.90s (20.43 tok/s)
+2026-04-12 18:15:43 - Generados 100 tokens en 4.90 segundos (20.42 tok/s)
+2026-04-12 18:15:43 - Deteniendo recolección de powermetrics...
+2026-04-12 18:15:43 - No hay métricas para calcular promedios
+2026-04-12 18:15:43 - PowerMetrics: CPU=0.000W, GPU=0.000W, Total=0.000W
+2026-04-12 18:15:44 - ✅ Benchmark completado: Qwen2.5-7B-MLX (INT4)
+2026-04-12 18:15:44 - 
+Generando tabla comparativa...
+2026-04-12 18:15:44 - Tabla comparativa guardada en: results/comparison_table.csv
+2026-04-12 18:15:44 - Resultados completos guardados en: results/comprehensive_benchmark_results.json
+2026-04-12 18:15:44 - 
+================================================================================
+2026-04-12 18:15:44 - BENCHMARK COMPREHENSIVO FINALIZADO
+2026-04-12 18:15:44 - ================================================================================
