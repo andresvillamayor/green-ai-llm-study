@@ -13,6 +13,7 @@ Clases:
 
 from pathlib import Path
 from typing import Optional, Dict
+from datetime import datetime, timezone
 import logging
 import time
 
@@ -91,15 +92,16 @@ class EnergyTracker:
                    project_name, country, self._mode)
     
     def start(self):
-        """
-        Inicia la medición de energía (modo software, sin threads).
-        
-        Registra el timestamp de inicio para calcular duración posteriormente.
-        Nunca solicita permisos de administrador ni crea threads.
-        """
+        """Inicia la medición de energía (modo software)."""
         logger.info("Iniciando medición energetica (modo estimación software)...")
         self._start_time = time.time()
-        # No hay nada más que hacer: la medición es puramente basada en tiempo
+        # Usar datetime solo si está importado correctamente
+        try:
+            self._execution_timestamp = datetime.now(timezone.utc)
+        except NameError:
+            # Fallback si datetime no está disponible
+            self._execution_timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        logger.info("Timestamp de ejecución (UTC): %s", self._execution_timestamp)
     
     def stop(self) -> float:
         """
@@ -220,7 +222,9 @@ class EnergyTracker:
             "country": self._country,
             "carbon_intensity_kg_per_kwh": self.CARBON_INTENSITY_PY,
             "power_estimate_watts": self._power_estimate_watts,
-            "measured": False  # Siempre False porque es estimación software
+            "measured": False,  # Siempre False porque es estimación software
+            "execution_timestamp_utc": self._execution_timestamp.isoformat() if hasattr(self, '_execution_timestamp') else None,
+            "factor_approach": "fixed_documented_average",  # Por defecto
         }
     
     def set_power_estimate(self, watts: float):

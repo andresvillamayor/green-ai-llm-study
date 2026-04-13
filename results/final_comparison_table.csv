@@ -1,0 +1,5 @@
+﻿Experiment,Model,Quantization,Framework,Device,Avg_Inference_Time_s,Std_Inference_Time_s,Latency_P50_ms,Latency_P95_ms,Avg_Energy_Wh,Avg_CO2_PY_g,Avg_CO2_ES_g,Throughput,Repetitions,Timestamp_First,Timestamp_Last
+A_LLM,Qwen2.5-7B-MLX,INT4,MLXRunner,mps,0,0.0,0,0,0.0499,0.0035,0.0342,0.0,15,2026-04-13T19:37:42Z,2026-04-13T19:38:44Z
+B_Vision,ConvNeXt-V2,FP16,VisionRunner,mps,0.02,0.045,8.53,180.68,0.0005,0.0,0.0003,50.0,15,2026-04-13T19:38:47Z,2026-04-13T19:38:47Z
+C_Audio,Whisper-Small,FP16,AudioRunner,mps,0.594,0.047,581.74,764.66,0.0067,0.0005,0.0046,1.68,15,2026-04-13T19:38:53Z,2026-04-13T19:39:02Z
+C_Audio,Distil-Whisper,FP16,AudioRunner,mps,0.279,0.01,276.7,317.16,0.0032,0.0002,0.0022,3.58,15,2026-04-13T19:39:07Z,2026-04-13T19:39:11Z

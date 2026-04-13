@@ -1,40 +1,59 @@
-# ===================================
-# LLM Quantization Study - Dependencies
-# Optimizado para Apple M4
-# ===================================
+# ============================================================
+# requirements.txt - Green AI LLM Study
+# Entorno: Python 3.10+ | macOS Apple Silicon (M4)
+# Autor: Andrés Rubén Villamayor Ruiz Diaz
+# ============================================================
 
 # === Medición de Energía ===
-codecarbon==2.3.4
+# codecarbon en modo offline para reproducibilidad académica
+codecarbon>=2.3.0
 
-# === LLM Inference ===
-llama-cpp-python==0.2.56
+# === LLM Inference (Apple Silicon) ===
+# mlx-lm gestiona sus propias dependencias de transformers/huggingface-hub
+mlx-lm>=0.30.0
+llama-cpp-python>=0.2.50
 
-# === Data Science ===
-numpy==1.26.3
-pandas==2.2.0
+# === Data Science Core ===
+# Versiones estables probadas en macOS M4
+numpy>=1.26.0
+pandas>=2.1.0
+scipy>=1.11.0
 
 # === Visualización ===
-matplotlib==3.8.2
-seaborn==0.13.1
-plotly==5.18.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
+plotly>=5.18.0
+tqdm>=4.66.0
 
 # === Utilidades ===
-tqdm==4.66.1
-python-dotenv==1.0.1
-pyyaml==6.0.1
+python-dotenv>=1.0.0
+pyyaml>=6.0.0
 
-# === Notebooks ===
-jupyter==1.0.0
-ipykernel==6.29.0
-notebook==7.0.7
+# === Notebooks (opcional, para análisis interactivo) ===
+jupyter>=1.0.0
+ipykernel>=6.29.0
+notebook>=7.0.0
 
-# === Code Quality ===
-black==24.1.1
-flake8==7.0.0
+# === Code Quality (desarrollo) ===
+black>=24.1.0
+flake8>=7.0.0
 
 # === Testing ===
-pytest==7.4.4
-pytest-cov==4.1.0
+pytest>=7.4.0
+pytest-cov>=4.1.0
 
-# === Hugging Face ===
-huggingface-hub==0.20.3
+# === Visión por Computadora (Experimento B) ===
+# torch/torchvision deben coincidir en versión mayor para MPS
+torch>=2.1.0
+torchvision>=0.16.0
+timm>=1.0.0
+pillow>=10.0.0
+# transformers se instala automáticamente vía mlx-lm (>=5.0.0)
+
+# === Audio y ASR (Experimento C) ===
+soundfile>=0.12.0
+librosa>=0.10.0
+
+# === Métricas de Hardware y Energía ===
+psutil>=5.9.0
+requests>=2.31.0
