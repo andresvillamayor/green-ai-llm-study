@@ -1,19 +1,19 @@
-# 🔋 LLM Quantization Study
+# LLM Quantization Study
 
 Medición de consumo energético en inferencia de LLMs en Apple M4.
 
-## 📊 Descripción
+##  Descripción
 
 Estudio experimental del impacto energético de Large Language Models durante inferencia en hardware Apple Silicon.
 
-## ✨ Características
+##  Características
 
-- ⚡ Medición precisa con CodeCarbon
-- 🚀 Optimizado para Apple M4 (Metal)
-- 📈 Análisis estadístico completo
-- 🌱 Contexto energético paraguayo
+-  Medición precisa con CodeCarbon
+-  Optimizado para Apple M4 (Metal)
+-  Análisis estadístico completo
+-  Contexto energético paraguayo
 
-## 🚀 Instalación
+##  Instalación
 
 ```bash
 git clone https://github.com/andresvillamayor/llm-quantization-study.git
