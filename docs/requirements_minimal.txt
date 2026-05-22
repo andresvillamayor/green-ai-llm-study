@@ -1,0 +1,25 @@
+# Requirements 
+# Proyecto: GREEN-IA - Consumo Energetico en LLMs
+# Autor: Andres Ruben Villamayor Ruiz Diaz
+# Hardware: Mac Mini M4 (2024) - 16GB RAM
+# Python: 3.13+
+
+# Inferencia de modelos LLM con soporte Metal
+llama-cpp-python==0.3.21
+
+# Medicion de energia y emisiones CO2
+codecarbon==3.2.6
+
+# Procesamiento y analisis de datos
+numpy==2.4.4
+pandas==3.0.2
+
+# Utilidades Python
+typing-extensions==4.15.0
+
+# Opcional - Visualizacion (descomentar si se necesita)
+# matplotlib>=3.8.0
+# seaborn>=0.13.0
+
+# Opcional - Analisis estadistico
+# scipy>=1.11.0
