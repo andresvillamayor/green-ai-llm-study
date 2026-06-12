@@ -1,58 +1,15 @@
-# Entornos virtuales
+# entorno virtual
 venv/
-env/
-ENV/
 
-# Python cache
+# modelos (pesan GB)
+models/
+
+# cache de Python
 __pycache__/
-*.py[cod]
 *.pyc
-*.pyo
-.Python
 
-# IDEs
-.vscode/
-.idea/
-*.swp
+# backups intermedios del experimento
+results/measurements/backup_*.csv
 
 # Mac
 .DS_Store
-.AppleDouble
-
-# Modelos grandes (NO subir a GitHub)
-models/**/*.gguf
-models/**/*.bin
-models/mlx/
-
-# Datos de mediciones (archivos grandes)
-results/measurements/**/*.csv
-results/measurements_detailed/**/*.csv
-
-# Gráficos temporales
-results/plots/*.png
-results/plots/*.pdf
-
-# Archivos de prueba
-test_*.py
-test_*.csv
-test_*.txt
-test_*.plist
-
-# Logs
-*.log
-logs/
-
-# Temporal
-*.tmp
-*~
-
-# Backups locales
-backup_*/
-limpiar_proyecto_completo.sh
-
-# Whisper binarios compilados
-whisper.cpp/build/
-whisper.cpp/**/*.o
-
-# CodeCarbon outputs (se generan localmente)
-emissions.csv

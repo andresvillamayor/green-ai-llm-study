@@ -19,100 +19,114 @@ Metodologia:
 - Cada prompt se ejecuta 15 veces por configuracion (n=15)
 - Total: 10 prompts x 8 configuraciones x 15 repeticiones = 1200 mediciones
 - Se mide: energia CPU/GPU/RAM, CO2, latencia, tokens/segundo
-
-Autor: Andres Villamayor
-Universidad Comunero, Paraguay
 """
 
 PROMPTS_CIENTIFICOS = [
+        # ============================================
+        # CATEGORÍA 1: REASONING (Razonamiento Lógico)
+        # ============================================
     {
         'id': 1,
-        'prompt': 'Explica el mecanismo de atencion multi-cabeza en la arquitectura Transformer y como procesa secuencias de longitud variable',
-        'referencia': 'Vaswani et al. 2017',
-        'paper_completo': 'Attention is All You Need',
-        'enlace': 'https://arxiv.org/abs/1706.03762',
-        'conferencia': 'NeurIPS 2017',
-        'descripcion': 'Paper fundacional de Transformers, base de GPT, BERT y modelos modernos'
+        'categoria': 'REASONING',
+        'prompt': 'If all roses are flowers and some flowers fade quickly, can we conclude that some roses fade quickly? Explain your reasoning.',
+        'referencia': 'Zheng et al. 2023',
+        'paper_completo': 'Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena',
+        'enlace': 'https://arxiv.org/abs/2306.05685',
+        'conferencia': 'NeurIPS 2023',
+        'descripcion': 'Pregunta de silogismo para evaluar capacidad de razonamiento lógico formal'
     },
     {
         'id': 2,
-        'prompt': 'Describe el proceso de pre-entrenamiento de BERT usando masked language modeling y como difiere de modelos autoregresivos',
-        'referencia': 'Devlin et al. 2019',
-        'paper_completo': 'BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding',
-        'enlace': 'https://arxiv.org/abs/1810.04805',
-        'conferencia': 'NAACL 2019',
-        'descripcion': 'Introduce bidireccionalidad en pre-entrenamiento de LLMs'
+        'categoria': 'REASONING',
+        'prompt': 'A farmer has 17 sheep. All but 9 die. How many sheep does the farmer have left? Explain.',
+        'referencia': 'Zheng et al. 2023',
+        'paper_completo': 'Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena',
+        'enlace': 'https://arxiv.org/abs/2306.05685',
+        'conferencia': 'NeurIPS 2023',
+        'descripcion': 'Problema clásico de lógica matemática para evaluar comprensión de negaciones'
     },
     {
         'id': 3,
-        'prompt': 'Explica como las redes neuronales convolucionales extraen caracteristicas jerarquicas desde bordes hasta objetos complejos',
-        'referencia': 'LeCun et al. 2015',
-        'paper_completo': 'Deep Learning',
-        'enlace': 'https://www.nature.com/articles/nature14539',
-        'conferencia': 'Nature 2015',
-        'descripcion': 'Revision comprensiva de deep learning por pioneros del campo'
+        'categoria': 'REASONING',
+        'prompt': 'If it takes 5 machines 5 minutes to make 5 widgets, how long does it take 100 machines to make 100 widgets?',
+        'referencia': 'Zheng et al. 2023',
+        'paper_completo': 'Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena',
+        'enlace': 'https://arxiv.org/abs/2306.05685',
+        'conferencia': 'NeurIPS 2023',
+        'descripcion': 'Problema de razonamiento proporcional para evaluar comprensión de relaciones'
     },
     {
         'id': 4,
-        'prompt': 'Describe el algoritmo de backpropagation y su rol en el entrenamiento de redes neuronales profundas mediante gradiente descendente',
-        'referencia': 'Rumelhart et al. 1986',
-        'paper_completo': 'Learning representations by back-propagating errors',
-        'enlace': 'https://www.nature.com/articles/323533a0',
-        'conferencia': 'Nature 1986',
-        'descripcion': 'Paper clasico que popularizo backpropagation en redes neuronales'
+        'categoria': 'REASONING',
+        'prompt': 'A bat and ball cost $1.10. The bat costs $1 more than the ball. How much does the ball cost?',
+        'referencia': 'Zheng et al. 2023',
+        'paper_completo': 'Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena',
+        'enlace': 'https://arxiv.org/abs/2306.05685',
+        'conferencia': 'NeurIPS 2023',
+        'descripcion': 'Problema de álgebra básica para evaluar precisión en cálculos simples'
     },
     {
         'id': 5,
-        'prompt': 'Explica el concepto de transfer learning y como los modelos pre-entrenados mejoran el rendimiento en tareas especificas',
-        'referencia': 'Pan and Yang 2010',
-        'paper_completo': 'A Survey on Transfer Learning',
-        'enlace': 'https://ieeexplore.ieee.org/document/5288526',
-        'conferencia': 'IEEE TKDE 2010',
-        'descripcion': 'Survey fundamental sobre transfer learning en machine learning'
+        'categoria': 'REASONING',
+        'prompt': 'Three switches control three light bulbs in another room. You can only enter the room once. How do you determine which switch controls which bulb?',
+        'referencia': 'Zheng et al. 2023',
+        'paper_completo': 'Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena',
+        'enlace': 'https://arxiv.org/abs/2306.05685',
+        'conferencia': 'NeurIPS 2023',
+        'descripcion': 'Problema de razonamiento espacial y pensamiento lateral'
     },
+
+        # ============================================
+        # CATEGORÍA 2: MATH (Matemáticas)
+        # ============================================
     {
         'id': 6,
-        'prompt': 'Describe como funciona el mecanismo de self-attention y por que permite paralelizacion en el procesamiento de secuencias',
-        'referencia': 'Vaswani et al. 2017',
-        'paper_completo': 'Attention is All You Need',
-        'enlace': 'https://arxiv.org/abs/1706.03762',
-        'conferencia': 'NeurIPS 2017',
-        'descripcion': 'Mismo paper fundacional, enfoque en paralelizacion'
+        'categoria': 'MATH',
+        'prompt': 'Given that f(x) = 4x³ - 9x - 14, find the value of f(2).',
+        'referencia': 'Zheng et al. 2023',
+        'paper_completo': 'Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena',
+        'enlace': 'https://arxiv.org/abs/2306.05685',
+        'conferencia': 'NeurIPS 2023',
+        'descripcion': 'Evaluación de funciones polinómicas y sustitución de valores'
     },
     {
         'id': 7,
-        'prompt': 'Explica la diferencia entre modelos autoregresivos como GPT y masked language models como BERT en terminos de arquitectura',
-        'referencia': 'Radford et al. 2019',
-        'paper_completo': 'Language Models are Unsupervised Multitask Learners',
-        'enlace': 'https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf',
-        'conferencia': 'OpenAI Technical Report',
-        'descripcion': 'Introduccion de GPT-2, modelo autoregresivo unidireccional'
+        'categoria': 'MATH',
+        'prompt': 'Calculate the compound interest on $10,000 at 5% annual rate over 3 years.',
+        'referencia': 'Zheng et al. 2023',
+        'paper_completo': 'Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena',
+        'enlace': 'https://arxiv.org/abs/2306.05685',
+        'conferencia': 'NeurIPS 2023',
+        'descripcion': 'Problema de matemáticas financieras para evaluar cálculos con fórmulas'
     },
     {
         'id': 8,
-        'prompt': 'Describe el proceso de fine-tuning en modelos de lenguaje pre-entrenados y las tecnicas de adaptacion de dominios',
-        'referencia': 'Howard and Ruder 2018',
-        'paper_completo': 'Universal Language Model Fine-tuning for Text Classification',
-        'enlace': 'https://arxiv.org/abs/1801.06146',
-        'conferencia': 'ACL 2018',
-        'descripcion': 'Introduce ULMFiT, metodo efectivo de fine-tuning'
+        'categoria': 'MATH',
+        'prompt': 'What is the area of a circle with radius 7 cm?',
+        'referencia': 'Zheng et al. 2023',
+        'paper_completo': 'Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena',
+        'enlace': 'https://arxiv.org/abs/2306.05685',
+        'conferencia': 'NeurIPS 2023',
+        'descripcion': 'Cálculo geométrico básico usando fórmula πr²'
     },
     {
         'id': 9,
-        'prompt': 'Explica como funcionan las capas de normalizacion como LayerNorm en transformers y por que son importantes',
-        'referencia': 'Ba et al. 2016',
-        'paper_completo': 'Layer Normalization',
-        'enlace': 'https://arxiv.org/abs/1607.06450',
-        'conferencia': 'arXiv 2016',
-        'descripcion': 'Tecnica de normalizacion critica para estabilidad en transformers'
+        'categoria': 'MATH',
+        'prompt': 'Solve for x: 2x + 5 = 15',
+        'referencia': 'Zheng et al. 2023',
+        'paper_completo': 'Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena',
+        'enlace': 'https://arxiv.org/abs/2306.05685',
+        'conferencia': 'NeurIPS 2023',
+        'descripcion': 'Ecuación lineal simple para evaluar resolución algebraica'
     },
     {
         'id': 10,
-        'prompt': 'Describe el concepto de word embeddings y como Word2Vec aprende representaciones distribuidas de palabras',
-        'referencia': 'Mikolov et al. 2013',
-        'paper_completo': 'Efficient Estimation of Word Representations in Vector Space',
-        'enlace': 'https://arxiv.org/abs/1301.3781',
-        'conferencia': 'ICLR 2013',
-        'descripcion': 'Introduce Word2Vec (CBOW y Skip-gram), base de embeddings modernos'
+        'categoria': 'MATH',
+        'prompt': 'If the probability of rain is 30%, what is the probability of no rain?',
+        'referencia': 'Zheng et al. 2023',
+        'paper_completo': 'Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena',
+        'enlace': 'https://arxiv.org/abs/2306.05685',
+        'conferencia': 'NeurIPS 2023',
+        'descripcion': 'Problema de probabilidad básica para evaluar comprensión de complementarios'
     }
 ]

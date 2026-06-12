@@ -16,7 +16,7 @@ Estudio experimental del impacto energético de Large Language Models durante in
 ##  Instalación
 
 ```bash
-git clone https://github.com/andresvillamayor/llm-quantization-study.git
+git clone https://github.com/andresvillamayor/green-ai-llm-study.git
 cd llm-quantization-study
 python3.10 -m venv venv
 source venv/bin/activate
