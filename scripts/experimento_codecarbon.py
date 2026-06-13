@@ -22,7 +22,7 @@ RESULTS_DIR  = PROJECT_ROOT / "results" / "measurements"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # para prueba uso 2 prompts, para el experimento completo sacar el [:2]
-PROMPTS = PROMPTS_CIENTIFICOS[:2]
+PROMPTS = PROMPTS_CIENTIFICOS
 
 # los 4 modelos descargados en formato GGUF
 MODELOS = {
@@ -72,8 +72,8 @@ def medir_inferencia(llm, prompt, device, prompt_id, paper_ref, repetition, mode
         output_dir=str(RESULTS_DIR),
         output_file="emissions_temp.csv",
         log_level="error",
-        save_to_file=False,
-        country_iso_code="PRY",
+        save_to_file=False
+        
     )
 
     tracker.start()
