@@ -633,3 +633,192 @@ PENDIENTE CRITICO:
   10 repeticiones (1200 mediciones)
 - Redactar seccion 7 amenazas a la validez
   en el documento de tesis
+
+---
+
+## SECCION 7 — AMENAZAS A LA VALIDEZ
+## Redaccion lista para copiar en la tesis
+
+### 7.1 Validez interna
+
+Los resultados del experimento pueden estar afectados
+por los siguientes factores internos:
+
+Planificacion del sistema operativo:
+macOS puede asignar la inferencia a E-cores en lugar
+de P-cores segun la carga del sistema, lo que genera
+tiempos de inferencia hasta 20 veces superiores al
+promedio. Este fenomeno se observo en 28 mediciones
+(3.5% del total) y se documento como outliers mediante
+el criterio Tukey IQR x3.
+
+Procesos en segundo plano:
+Aplicaciones activas durante el experimento pueden
+competir por CPU, GPU y memoria RAM, afectando tanto
+el tiempo de inferencia como el consumo energetico
+reportado por CodeCarbon. Se recomienda ejecutar el
+experimento con todas las aplicaciones cerradas y
+sudo purge previo.
+
+Temperatura y throttling termico:
+El chip M4 reduce la frecuencia de operacion cuando
+alcanza limites termicos. Con modelos Q8 que ocupan
+7-8 GB de RAM, la presion sobre el sistema es mayor
+y el riesgo de throttling aumenta. La temperatura
+no fue capturada directamente por requerir sudo
+powermetrics, lo que representa una limitacion
+del protocolo experimental.
+
+Asignacion dinamica de P-cores y E-cores:
+El planificador de macOS decide en tiempo de ejecucion
+que cores utilizar. Esta decision no es controlable
+por el experimento y genera variabilidad en los
+resultados, especialmente en configuraciones CPU
+con modelos Q8.
+
+Limitaciones de las herramientas de medicion:
+CodeCarbon estima la energia GPU de forma indirecta
+en Apple Silicon. La atribucion energetica por
+componente (CPU, GPU, RAM) es una estimacion y no
+una medicion directa. Esto afecta la comparacion
+energetica entre modos CPU y GPU.
+
+### 7.2 Validez externa
+
+Los resultados de este experimento no pueden
+generalizarse automaticamente a otros contextos.
+Las siguientes limitaciones de alcance deben
+declararse explicitamente en la tesis:
+
+Modelos:
+Los resultados aplican exclusivamente a Llama-2-7B
+y Qwen2.5-7B. No pueden extrapolarse a otros modelos,
+familias de arquitecturas o tamanios de parametros
+distintos a 7B.
+
+Cuantizacion:
+Solo se evaluaron Q4_K_M y Q8_0 en formato GGUF
+con llama.cpp. Otros esquemas de cuantizacion
+(Q2, Q3, Q5, Q6, GPTQ, AWQ, GGML) pueden mostrar
+comportamientos distintos.
+
+Hardware:
+Los resultados son especificos del chip Apple M4
+con 16 GB de RAM unificada. No son directamente
+comparables con GPUs NVIDIA, CPUs x86, otros chips
+Apple (M1, M2, M3) ni otros sistemas con memoria
+no unificada.
+
+Sistema operativo:
+El experimento se ejecuto en macOS 15.6.1. El
+comportamiento del planificador de tareas, la
+gestion de memoria y el backend Metal son
+especificos de este sistema operativo.
+
+Cargas de trabajo:
+El conjunto de 15 prompts cubre 9 categorias
+controladas. Tareas con prompts mas largos,
+respuestas mas extensas, procesamiento en lote
+o inferencia continua pueden mostrar patrones
+de consumo energetico distintos.
+
+Redaccion para tesis:
+"Los resultados de este estudio son validos para
+el entorno especifico descrito:
+
+### 7.3 Validez de constructo
+
+El estudio busca medir consumo energetico y estimar
+emisiones de CO2eq durante inferencia LLM. Sin embargo,
+parte de las metricas son estimadas, no medidas
+directamente.
+
+Energia total:
+CodeCarbon estima la energia total sumando los
+componentes CPU, GPU y RAM. Esta estimacion se
+basa en contadores del sistema operativo y modelos
+de consumo tipico del hardware. No equivale a una
+medicion directa con un wattimetro externo.
+
+Energia GPU en Apple Silicon:
+CodeCarbon no dispone de acceso directo al consumo
+de la GPU integrada del chip M4. La energia atribuida
+a GPU es una estimacion indirecta. Esta es la amenaza
+de constructo mas importante del estudio.
+
+Energia RAM:
+La energia atribuida a RAM se estima a partir del
+consumo tipico por GB de memoria segun el tipo de
+modulo. En arquitecturas de memoria unificada como
+Apple M4, la separacion entre consumo de CPU, GPU
+y RAM es menos clara que en arquitecturas tradicionales.
+
+Emisiones CO2eq:
+Las emisiones no se miden directamente. Se calculan
+multiplicando la energia estimada por el factor de
+emision de Paraguay (26 gCO2eq/kWh, Electricity Maps
+2026). El resultado es una estimacion operacional,
+no una medicion de emisiones reales.
+
+Redaccion para tesis:
+"Las metricas energeticas reportadas son estimaciones
+derivadas de contadores del sistema operativo mediante
+CodeCarbon, no mediciones directas de consumo electrico.
+La atribucion por componente, especialmente GPU y RAM
+en arquitecturas de memoria unificada, debe interpretarse
+con cautela. Las emisiones de CO2eq son valores calculados
+a partir de energia estimada y un factor de emision
+verificado, no mediciones directas de gases de efecto
+invernadero. La validacion cruzada con instrumentacion
+de hardware dedicada queda como trabajo futuro."
+
+### 7.4 Validez estadistica
+
+La mesa observo que 5 repeticiones son insuficientes
+con outliers extremos. El experimento final usa
+10 repeticiones con estadistica robusta.
+
+Lo que se implemento:
+
+Repeticiones:
+Se realizaron 10 repeticiones por configuracion,
+suficientes para calcular IC 95% con t de Student
+y detectar variabilidad intra-configuracion.
+
+Estadistica robusta:
+Dado que se detectaron outliers severos (tiempos
+entre 852s y 1031s en 3.5% de mediciones), se
+reportan mediana e IQR como estadisticos principales
+en lugar de media y desviacion estandar. La media
+se reporta adicionalmente para comparacion.
+
+Intervalos de confianza:
+Se calcularon IC 95% mediante distribucion t de
+Student para todas las metricas principales. Los
+intervalos se muestran como barras de error en
+todas las figuras.
+
+Analisis de sensibilidad:
+Todas las figuras muestran resultados con y sin
+outliers en barras paralelas. La tabla comparativa
+en diagnosticar_datos.py reporta el delta% entre
+ambos conjuntos, lo que permite evaluar el impacto
+de los outliers en las conclusiones.
+
+Pruebas de significancia:
+Se aplico Mann-Whitney U bilateral con alpha 0.05
+para comparar Q4 vs Q8 por modelo en velocidad,
+energia y CO2eq. Esta prueba no parametrica es
+apropiada dado que el test de Shapiro-Wilk confirma
+distribucion no normal en presencia de outliers.
+
+Redaccion para tesis:
+"Se realizaron 10 repeticiones por configuracion
+para garantizar robustez estadistica. Dado que se
+detectaron valores extremos (3.5% de mediciones),
+se aplico estadistica robusta reportando mediana
+e IQR como estadisticos principales. Las comparaciones
+entre configuraciones se realizaron con la prueba
+Mann-Whitney U (bilateral, alpha=0.05). Se presento
+un analisis de sensibilidad mostrando resultados
+con y sin outliers en todas las figuras y tablas."
