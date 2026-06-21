@@ -253,6 +253,12 @@ def fig1_energia_apilada(stats, stats_clean=None):
         ax.legend(loc="upper left", fontsize=9)
         ax.set_title("Consumo Energetico por Componente\nLLM Inference — GREEN-IA", fontweight="bold")
 
+    ax.annotate(
+        "* Energía GPU estimada por CodeCarbon. "
+        "Apple Silicon no expone API directa de consumo GPU.",
+        xy=(0, -0.12), xycoords='axes fraction',
+        fontsize=7, color='gray', style='italic'
+    )
     plt.tight_layout()
     ruta = PLOTS_DIR / "fig1_energia_desglosada.png"
     plt.savefig(ruta, dpi=300, bbox_inches="tight")
@@ -339,6 +345,12 @@ def fig3_co2(stats, stats_clean=None):
                    "(Paraguay: 26 gCO2/kWh, datos completos)")
     ax.set_title(titulo, fontweight="bold")
 
+    ax.annotate(
+        "* Energía GPU estimada por CodeCarbon. "
+        "Apple Silicon no expone API directa de consumo GPU.",
+        xy=(0, -0.12), xycoords='axes fraction',
+        fontsize=7, color='gray', style='italic'
+    )
     plt.tight_layout()
     ruta = PLOTS_DIR / "fig3_emisiones_co2.png"
     plt.savefig(ruta, dpi=300, bbox_inches="tight")
@@ -495,6 +507,12 @@ def fig5_q4_vs_q8(stats, stats_clean=None):
                        else "Comparacion Q4 vs Q8 por Modelo y Dispositivo\n"
                             "(datos completos incluyendo outliers)")
     fig.suptitle(titulo_suptitle, fontsize=12, fontweight="bold")
+    axes[1].annotate(
+        "* Energía GPU estimada por CodeCarbon. "
+        "Apple Silicon no expone API directa de consumo GPU.",
+        xy=(0, -0.12), xycoords='axes fraction',
+        fontsize=7, color='gray', style='italic'
+    )
     plt.tight_layout(rect=(0, 0.07, 1, 1))
     ruta = PLOTS_DIR / "fig5_q4_vs_q8.png"
     plt.savefig(ruta, dpi=300, bbox_inches="tight")
@@ -544,6 +562,12 @@ def fig6_metricas_normalizadas(stats, stats_clean=None):
                  else "Paraguay: 26 gCO2/kWh, datos completos")
     fig.suptitle(f"Metricas Normalizadas por Token — GREEN-IA\n({subtitulo})",
                  fontsize=12, fontweight="bold")
+    axes[0].annotate(
+        "* Energía GPU estimada por CodeCarbon. "
+        "Apple Silicon no expone API directa de consumo GPU.",
+        xy=(0, -0.12), xycoords='axes fraction',
+        fontsize=7, color='gray', style='italic'
+    )
     plt.tight_layout()
     ruta = PLOTS_DIR / "fig6_metricas_normalizadas.png"
     plt.savefig(ruta, dpi=300, bbox_inches="tight")
