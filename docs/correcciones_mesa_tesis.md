@@ -822,3 +822,77 @@ entre configuraciones se realizaron con la prueba
 Mann-Whitney U (bilateral, alpha=0.05). Se presento
 un analisis de sensibilidad mostrando resultados
 con y sin outliers en todas las figuras y tablas."
+
+---
+
+## SECCION 8 — RECOMENDACION FINAL DE LA MESA
+
+Dictamen: REVISION MAYOR
+
+La mesa reconoce que el trabajo tiene potencial y
+aborda una pregunta relevante. La direccion experimental
+es correcta. Las debilidades son metodologicas y de
+redaccion, no de tema ni de diseno.
+
+Lo que dice la mesa que hay que hacer:
+
+1. Reformular como evaluacion exploratoria controlada:
+NUNCA presentar como contribucion generalizable.
+SIEMPRE presentar como:
+"Evaluacion exploratoria y controlada de consumo
+energetico en inferencia LLM sobre hardware Apple
+Silicon de consumo general."
+
+2. Reforzar metodologia de medicion:
+RESUELTO — metricas normalizadas, IC 95%,
+Mann-Whitney U, tabla de fuentes por metrica.
+
+3. Normalizar por token:
+RESUELTO — energy_per_token, energy_per_1k_tokens,
+tokens_per_joule, latency_per_token_ms en CSV.
+
+4. Ampliar o delimitar benchmark:
+RESUELTO — 15 prompts en 9 categorias MT-Bench
+con alcance explicito documentado.
+
+5. Corregir bibliografia:
+PENDIENTE — clasificar referencias en peer-reviewed,
+preprints, reportes y documentacion.
+
+6. Mejorar analisis estadistico:
+RESUELTO — mediana, IQR, CV, IC 95%, Mann-Whitney U,
+analisis de sensibilidad con/sin outliers.
+
+7. Adoptar lenguaje cauteloso:
+RESUELTO — tabla de reemplazos en secciones 4.5,
+5.7 a 5.11 con frases delimitadoras.
+
+---
+
+ESTADO GENERAL AL DIA DE HOY:
+
+RESUELTO EN CODIGO:
+- experimento_codecarbon.py    15 campos nuevos en CSV
+- graficar_resultados.py       estadistica formal completa
+- diagnosticar_datos.py        outliers formalizados IQR x3
+- benchmark_prompts_scientific 15 prompts 9 categorias
+
+RESUELTO EN DOCUMENTACION:
+- README.md                    seccion reproducibilidad
+- correcciones_mesa_tesis.md   guia completa de redaccion
+- carbon_factors.py            fuente oficial Paraguay
+- .gitignore y repo GitHub     organizado y limpio
+
+PENDIENTE:
+- Lista de referencias para clasificar
+- Experimento final 1200 mediciones
+- Redactar seccion 7 amenazas en documento de tesis
+- Presentacion actualizada con todos los cambios
+
+---
+
+CONCLUSION:
+El trabajo paso de tener debilidades metodologicas
+importantes a tener una base solida para responder
+punto por punto a la mesa. Lo que queda pendiente
+es redaccion y bibliografia, no experimentos nuevos.
