@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 from pathlib import Path
-from scipy.stats import t as t_dist
+from scipy.stats import t as t_dist, mannwhitneyu, shapiro
 
 PROJECT_ROOT = Path(__file__).parent.parent
 RESULTS_DIR  = PROJECT_ROOT / "results" / "measurements"
@@ -86,13 +86,13 @@ def identificar_outliers(df):
                   f"{row['inference_time_s']:.2f} s  ({veces:.1f}x la media de {media:.1f} s)")
 
             # los tiempos extremos en CPU estan documentados en powermetrics_log.txt
-            # el log muestra que en esas corridas los P-cores del M4 estaban al 0%
-            # y el sistema corria en E-cores a 1080 MHz con 18 mW de consumo total
+            # los tiempos extremos en CPU son compatibles con throttling termico
+            # o ejecucion en E-cores segun registros del sistema operativo
             # eso multiplica el tiempo de inferencia hasta 25 veces respecto al normal
             if row["inference_time_s"] > 100 and dev.upper() == "CPU":
                 print(f"    causa documentada en powermetrics_log.txt:")
-                print(f"    P-cores al 0% de actividad, CPU a 1080 MHz, consumo 18 mW")
-                print(f"    el sistema operativo ejecuto la inferencia solo en E-cores")
+                print(f"    comportamiento compatible con throttling termico o "
+                      f"ejecucion en E-cores segun registros del sistema operativo")
 
             if dev.upper() == "CPU":
                 cpu_count += 1
@@ -575,6 +575,58 @@ def fig6_metricas_normalizadas(stats, stats_clean=None):
     print(f"  guardado: {ruta.name}")
 
 
+def pruebas_estadisticas(df):
+    """
+    Pruebas estadisticas de comparacion entre configuraciones.
+    Usa Mann-Whitney U porque no asume distribucion normal,
+    apropiado dado los outliers severos observados.
+    """
+    print("\n" + "="*60)
+    print("  PRUEBAS ESTADISTICAS — Mann-Whitney U (α=0.05)")
+    print("  No parametrica: no asume distribucion normal")
+    print("="*60)
+
+    metricas = [
+        ("tokens_per_second", "Velocidad (tok/s)"),
+        ("total_energy_wh",   "Energia (Wh)"),
+        ("emissions_mg_co2",  "CO2 (mg)"),
+    ]
+
+    for mod in ["llama-2-7b", "qwen2.5-7b"]:
+        sub = df[df["model"] == mod]
+        print(f"\n  {mod.upper()}")
+        print(f"  {'─'*50}")
+
+        for met, label in metricas:
+            q4 = sub[sub["quantization"] == "Q4"][met].dropna()
+            q8 = sub[sub["quantization"] == "Q8"][met].dropna()
+
+            if len(q4) < 3 or len(q8) < 3:
+                print(f"  {label}: datos insuficientes")
+                continue
+
+            stat, p = mannwhitneyu(q4, q8, alternative="two-sided")
+            sig = "SIGNIFICATIVO *" if p < 0.05 else "no significativo"
+            print(f"  {label}:")
+            print(f"    Q4 mediana={q4.median():.4f}  "
+                  f"Q8 mediana={q8.median():.4f}")
+            print(f"    U={stat:.0f}  p={p:.4f}  → {sig}")
+
+    # test de normalidad rapido para justificar Mann-Whitney
+    print(f"\n  {'─'*50}")
+    print("  TEST DE NORMALIDAD (Shapiro-Wilk, muestra reducida)")
+    sample = df["tokens_per_second"].dropna().sample(
+        min(50, len(df)), random_state=42
+    )
+    stat, p = shapiro(sample)
+    normal = "normal" if p > 0.05 else "NO normal"
+    print(f"  tokens_per_second: W={stat:.4f} p={p:.4f} "
+          f"→ distribucion {normal}")
+    print(f"  Justifica uso de prueba no parametrica: "
+          f"{'SI' if p < 0.05 else 'NO'}")
+    print("="*60)
+
+
 if __name__ == "__main__":
     print("=" * 55)
     print("  GREEN-IA: generando graficas")
@@ -598,5 +650,7 @@ if __name__ == "__main__":
     fig4_boxplot_tiempos(df)
     fig5_q4_vs_q8(stats, stats_clean)
     fig6_metricas_normalizadas(stats, stats_clean)
+
+    pruebas_estadisticas(df)
 
     print(f"\n  listo. graficas en: {PLOTS_DIR}")

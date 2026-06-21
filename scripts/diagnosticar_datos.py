@@ -89,6 +89,8 @@ for (mod, q, dev), grp in df.groupby(["model", "quantization", "device"]):
                   f"({veces:.1f}x la media de {media:.1f} s)")
             print(f"        energia  : {e_tot:.4f} mWh total  "
                   f"(CPU {e_cpu:.4f}  GPU {e_gpu:.4f}  RAM {e_ram:.4f})")
+            print(f"    potencia CPU media  : {row['cpu_power_w']:.2f} W")
+            print(f"    frecuencia en config: {len(outs)}/{len(grp)} ({len(outs)/len(grp)*100:.1f}%)")
             total_outliers += 1
 
 print(f"\n{'=' * 60}")

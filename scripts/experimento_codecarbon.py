@@ -8,7 +8,9 @@ import gc
 import time
 import sys
 import platform
+import subprocess
 import numpy as np
+import psutil
 from pathlib import Path
 from datetime import datetime
 
@@ -24,6 +26,12 @@ PROJECT_ROOT = Path(__file__).parent.parent
 MODELS_DIR   = PROJECT_ROOT / "models"
 RESULTS_DIR  = PROJECT_ROOT / "results" / "measurements"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+try:
+    _pip_show = subprocess.check_output(["pip", "show", "llama-cpp-python"], text=True)
+    llama_commit = [l for l in _pip_show.split("\n") if "Version" in l][0].strip()
+except Exception:
+    llama_commit = "no disponible"
 
 PROMPTS = PROMPTS_CIENTIFICOS
 
@@ -184,6 +192,10 @@ def medir_inferencia(llm, prompt, device, prompt_id, paper_ref,
         "tokens_output"     : tokens_gen,
         "tokens_total"      : tokens_total,
         "energy_per_token"  : (e_tot * 1000) / tokens_gen if tokens_gen > 0 else 0,
+        # metricas normalizadas por token pedidas por mesa de tesis
+        "energy_per_1k_tokens"  : (e_tot * 1000 * 1000) / tokens_gen if tokens_gen > 0 else 0,
+        "tokens_per_joule"      : tokens_gen / (e_tot * 3600) if e_tot > 0 else 0,
+        "latency_per_token_ms"  : (t_total / tokens_gen * 1000) if tokens_gen > 0 else 0,
         "n_gpu_layers"      : -1 if device == "gpu" else 0,
         "n_threads"         : PARAMS["n_threads"],
         "n_batch"           : PARAMS["n_batch"],
@@ -191,6 +203,14 @@ def medir_inferencia(llm, prompt, device, prompt_id, paper_ref,
         "macos_version"     : platform.mac_ver()[0],
         "llama_cpp_version" : llama_version,
         "python_version"    : platform.python_version(),
+        "cpu_freq_mhz"      : psutil.cpu_freq().current if psutil.cpu_freq() else 0,
+        "cpu_percent"       : psutil.cpu_percent(interval=None),
+        "ram_used_gb"       : psutil.virtual_memory().used / (1024**3),
+        "ram_percent"       : psutil.virtual_memory().percent,
+        "llama_cpp_commit"  : llama_commit,
+        "metal_backend"     : "yes" if device == "gpu" else "no",
+        "prompt_template"   : "plain_text_no_template",
+        "warmup_done"       : "yes",
     }
 
 
