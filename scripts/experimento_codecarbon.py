@@ -25,7 +25,7 @@ MODELS_DIR   = PROJECT_ROOT / "models"
 RESULTS_DIR  = PROJECT_ROOT / "results" / "measurements"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
-PROMPTS = PROMPTS_CIENTIFICOS[:2]  # TEMPORAL: solo 2 prompts para prueba
+PROMPTS = PROMPTS_CIENTIFICOS
 
 MODELOS = {
     "llama-2-7b": {
@@ -50,8 +50,7 @@ PARAMS = {
     "n_batch"     : 512,       # batch size
 }
 
-# TEMPORAL: 2 repeticiones para prueba — revertir a 10 antes del experimento final
-NUM_REPETICIONES = 2
+NUM_REPETICIONES = 10
 DISPOSITIVOS     = ["cpu", "gpu"]
 
 
