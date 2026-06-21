@@ -542,3 +542,94 @@ Aporte 3 — Contextual:
 emisiones operacionales de CO2eq en un contexto
 energetico de baja huella carbono, contribuyendo
 a la linea de investigacion Green AI en America Latina."
+
+---
+
+## SECCION 6 — REVISIONES OBLIGATORIAS
+## Estado de cumplimiento
+
+1.  CO2 real → CO2eq operacional estimado
+    RESUELTO — tabla de reemplazos en 4.1 y 4.5
+
+2.  Fuente oficial factor emision Paraguay
+    RESUELTO — Electricity Maps 21 jun 2026
+    26 gCO2eq/kWh, captura de pantalla en docs/
+
+3.  Energia por token y CO2eq por 1.000 tokens
+    RESUELTO — energy_per_token, energy_per_1k_tokens,
+    co2_1k en CSV y fig6_metricas_normalizadas
+
+4.  Tokens entrada, salida y totales
+    RESUELTO — tokens_input, tokens_output,
+    tokens_total en CSV
+
+5.  Ampliar benchmark o limitar alcance
+    RESUELTO — 15 prompts en 9 categorias MT-Bench
+    + redaccion de alcance explicito en 5.5
+
+6.  Parametros llama.cpp
+    RESUELTO — n_ctx, max_tokens, temperature,
+    top_p, seed, n_threads, n_batch, n_gpu_layers
+    en CSV y README
+
+7.  Version, commit y flags de compilacion
+    RESUELTO — llama_cpp_version, llama_cpp_commit,
+    metal_backend en CSV. GGML_METAL=on en README
+
+8.  Hardware y sistema operativo completos
+    RESUELTO — seccion Reproducibilidad en README
+    + macos_version, cpu_model, ram_total_gb en CSV
+
+9.  Analisis estadistico formal
+    RESUELTO — media, mediana, std, IQR, CV,
+    IC 95% t-Student, Mann-Whitney U en
+    graficar_resultados.py
+
+10. Resultados con y sin outliers
+    RESUELTO — barras dobles en todas las figuras,
+    tabla comparativa con delta% en diagnosticar_datos.py
+
+11. Corregir y clasificar referencias
+    PENDIENTE — necesito lista completa de referencias
+
+12. Eliminar Wikipedia como referencia principal
+    PENDIENTE — necesito lista completa de referencias
+
+13. Distinguir peer-reviewed, preprints, reportes
+    PENDIENTE — necesito lista completa de referencias
+
+14. Suavizar afirmaciones absolutas
+    RESUELTO — tabla de reemplazos en 4.5
+    y correcciones en 5.7 a 5.11
+
+15. Seccion amenazas a la validez
+    RESUELTO — redaccion completa en 4.1 a 4.10
+    Lista para incluir en tesis como seccion 7
+
+16. Limitaciones CodeCarbon en Apple Silicon
+    RESUELTO — documentado en 4.2, tabla de
+    fuentes en 5.6, nota en figuras GPU
+
+17. CPU vs GPU como observacion dependiente
+    RESUELTO — reformulacion en 4.6 y 5.8
+
+18. Validar atribucion energetica por componente
+    RESUELTO — explicacion en 5.7 con nota de
+    limitacion en pie de figura
+
+19. Barras de error e IC en figuras
+    RESUELTO — IC 95% con t-Student en todas
+    las figuras de graficar_resultados.py
+
+20. Separar medicion, estimacion e interpretacion
+    RESUELTO — tabla de fuentes por metrica en 5.6
+
+---
+
+PENDIENTE CRITICO:
+- Lista de referencias completa para resolver
+  puntos 11, 12 y 13
+- Correr experimento final con 15 prompts y
+  10 repeticiones (1200 mediciones)
+- Redactar seccion 7 amenazas a la validez
+  en el documento de tesis
