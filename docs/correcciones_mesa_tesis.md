@@ -636,6 +636,63 @@ PENDIENTE CRITICO:
 
 ---
 
+## BIBLIOGRAFIA — CORRECCIONES PARA PRESENTACION
+
+CAMBIO 1 — Titulo de la slide:
+ANTES: "13 fuentes revisadas por pares"
+AHORA: "14 fuentes bibliograficas:
+        4 articulos peer-reviewed,
+        7 preprints tecnicos arXiv,
+        1 reporte tecnico,
+        1 fuente web oficial,
+        1 documentacion de herramienta"
+
+CAMBIO 2 — Eliminar Wikipedia [13]:
+Reemplazar por:
+[13] Electricity Maps (2026). Intensidad de carbono
+de la red electrica de Paraguay: 26 gCO2eq/kWh.
+Recuperado de https://app.electricitymaps.com/zone/PY
+Fecha de acceso: 21 de junio de 2026.
+
+CAMBIO 3 — Corregir Llama 2 [8]:
+ANTES: arXiv:2510.12178
+AHORA: arXiv:2307.09288
+Touvron et al. (2023). Llama 2: Open Foundation
+and Fine-Tuned Chat Models. Meta AI.
+
+CAMBIO 4 — Agregar CodeCarbon [14]:
+Courty et al. (2023). CodeCarbon: Estimate and
+Track Carbon Emissions from Machine Learning
+Computing. arXiv:2002.05651
+
+CLASIFICACION COMPLETA:
+
+Peer-reviewed (4):
+[1]  Zheng et al. 2023 — NeurIPS 2023
+[5]  Wan et al. 2025 — ACM
+[10] Liu et al. 2024 — IEEE SC24
+[12] Tukey 1977 — Addison-Wesley
+
+Preprints arXiv (7):
+[2]  Min et al. 2025 — arXiv:2506.19884
+[3]  Singh et al. 2025 — arXiv:2512.22066
+[4]  Tan et al. 2025 — arXiv:2505.06461
+[6]  Steyvers et al. 2025 — arXiv:2509.24086
+[7]  Yang et al. 2024 — arXiv:2410.02950
+[8]  Touvron et al. 2023 — arXiv:2307.09288
+[9]  Qwen Team 2024 — arXiv:2412.15115
+
+Reporte tecnico (1):
+[11] AscentCore Research 2026
+
+Fuente web oficial (1):
+[13] Electricity Maps 2026
+
+Documentacion de herramienta (1):
+[14] CodeCarbon — arXiv:2002.05651
+
+---
+
 ## SECCION 7 — AMENAZAS A LA VALIDEZ
 ## Redaccion lista para copiar en la tesis
 
