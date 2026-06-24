@@ -46,16 +46,44 @@ MODELOS = {
     },
 }
 
+# Parametros del Experimento 2
+# Diferencia respecto al Experimento 1:
+#   temperature : 0.7 → 0.1
+#   top_p       : 0.9 → 0.95
+#   max_tokens  : 256 → 512
+#
+# Respaldo cientifico:
+#
+#   temperature=0.1 y top_p=0.95:
+#     Caravaca et al. (2025). Towards Green AI: Decoding the Energy
+#     of LLM Inference in Software Development. ACL 2025.
+#     arXiv:2602.05712
+#     "For all experiments, the top-p value was set to 0.95 and
+#     the temperature to 0.1, ensuring a fair comparison between models"
+#
+#   Efecto de temperature en energia y calidad:
+#     Nik et al. (2025). Energy-Conscious LLM Decoding: Impact of
+#     Text Generation Strategies on GPU Energy Consumption.
+#     arXiv:2502.11723
+#     Valores probados: {0.1, 0.3, 0.5, 0.7, 0.9, 1.0, 1.2, 1.5, 2.0}
+#     Resultado: temperature afecta consumo energetico y calidad
+#
+#   max_tokens=512 — efecto de longitud en energia:
+#     Husom et al. (2024). Citado en multiples estudios de eficiencia.
+#     Hallazgo: longitud de respuesta correlaciona r=0.85 con energia
+#     total. max_tokens=512 permite medir este efecto directamente.
+#
+#   seed=42: mismo que v1 para reproducibilidad del experimento
 PARAMS = {
     "n_ctx"       : 1024,
-    "temperature" : 0.7,
-    "top_p"       : 0.9,
-    "max_tokens"  : 256,
+    "temperature" : 0.1,    # Caravaca et al. ACL 2025 arXiv:2602.05712
+    "top_p"       : 0.95,   # Caravaca et al. ACL 2025 arXiv:2602.05712
+    "max_tokens"  : 512,    # Husom et al. 2024 — correlacion r=0.85 energia-longitud
     "echo"        : False,
     "stop"        : None,
-    "seed"        : 42,        # para reproducibilidad
-    "n_threads"   : 8,         # threads CPU
-    "n_batch"     : 512,       # batch size
+    "seed"        : 42,     # mismo que v1 para reproducibilidad
+    "n_threads"   : 8,
+    "n_batch"     : 512,
 }
 
 NUM_REPETICIONES = 10
@@ -168,6 +196,7 @@ def medir_inferencia(llm, prompt, device, prompt_id, paper_ref,
         "prompt_id"         : prompt_id,
         "prompt_text"       : prompt[:100],
         "response_text"     : texto_generado[:2000],
+        "experiment_version": "v2_temp01_topp095_max512",
         "paper_reference"   : paper_ref,
         "repetition"        : repetition,
         "inference_time_s"  : t_total,
@@ -311,7 +340,7 @@ def ejecutar_experimento():
 
     df    = pd.DataFrame(resultados)
     fecha = datetime.now().strftime("%Y%m%d_%H%M%S")
-    ruta  = RESULTS_DIR / f"experimento_codecarbon_{fecha}.csv"
+    ruta  = RESULTS_DIR / f"experimento_params_v2_{fecha}.csv"
     df.to_csv(ruta, index=False)
     print(f"\n  guardado: {ruta}")
     print(f"  {len(df)} filas x {len(df.columns)} columnas")
