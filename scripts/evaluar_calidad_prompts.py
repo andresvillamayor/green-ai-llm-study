@@ -1,289 +1,219 @@
 # evaluar_calidad_prompts.py
-# Juez LLM: compara accuracy de respuestas Experimento 1 vs Experimento 2
-# Proyecto GREEN-IA — Maestria Ciencia de Datos — Andres Villamayor
+# Juez LLM para evaluacion de calidad de respuestas
+# Proyecto GREEN-IA — Andres Villamayor
+# Universidad Comunero — Paraguay
 #
-# Metodo: LLM-as-a-Judge
-# Referencia principal:
-#   Zheng et al. (2023). Judging LLM-as-a-Judge with MT-Bench
-#   and Chatbot Arena. NeurIPS 2023. arXiv:2306.05685
-#   Resultado: jueces LLM alcanzan >80% de acuerdo con humanos
+# Metodo: Single Answer Grading — LLM-as-a-Judge
+# Referencia: Zheng et al. (2023). Judging LLM-as-a-Judge
+#   with MT-Bench and Chatbot Arena. NeurIPS 2023.
+#   arXiv:2306.05685v4. Figura 6 del paper.
 #
-# Juez utilizado: Claude Sonnet 4.6 via API Anthropic
-# Justificacion: Claude Sonnet 4.6 es equivalente a GPT-4 en capacidad
-# evaluativa. El paper de Zheng et al. valida jueces de esta categoria.
-# No hay sesgo de auto-preferencia: Claude evalua Llama y Qwen,
-# modelos distintos al juez.
+# Juez: Claude Sonnet 4.6 via API Anthropic
+# Equivalencia: Claude Sonnet 4.6 ~ GPT-4 en capacidad evaluativa
+# Acuerdo juez LLM vs humanos: >80% (Zheng et al. 2023, Tabla 5)
 #
-# Sesgos conocidos y mitigaciones aplicadas:
+# Sesgos documentados y mitigaciones (Seccion 3.3 del paper):
 #
 #   Sesgo de posicion (position bias):
-#     Definicion: el juez tiende a preferir la primera respuesta presentada
-#     Fuente: Zheng et al. 2023
-#     Mitigacion: orden de presentacion randomizado con random.choice([True,False])
-#     Implementacion: parametro invertir=True/False en llamar_juez()
+#     No aplica en single answer grading — se evalua una
+#     respuesta a la vez, sin comparacion de orden.
 #
 #   Sesgo de verbosidad (verbosity bias):
-#     Definicion: el juez tiende a preferir respuestas mas largas
-#     Fuente: Zheng et al. 2023
-#     Mitigacion: rubrica explicita con criterio de concision y
-#     instruccion explicita "No favorecer la respuesta mas larga"
+#     Mitigacion: instruccion explicita en rubrica
+#     "Do not allow the length of the response to influence
+#     your evaluation" — copiado de Figura 6 del paper.
 #
-#   Sesgo de auto-preferencia (self-preference bias):
-#     Definicion: un modelo prefiere sus propias respuestas
-#     Fuente: Panickssery et al. 2024. arXiv:2404.13076
-#     Mitigacion: NO APLICA — Claude evalua Llama y Qwen, no a si mismo
+#   Sesgo de auto-preferencia (self-enhancement bias):
+#     No aplica — Claude evalua Llama y Qwen, no sus propias
+#     respuestas. (Panickssery et al. 2024. arXiv:2404.13076)
 #
-# Criterio de evaluacion: ACCURACY
-#     Correctitud factual, precision logica, completitud, concision
-#     Puntaje: 1-10 por respuesta + ganador + justificacion
+# Prompt del juez: basado en Figura 6 de Zheng et al. 2023
+# Escala: 1-10 con formato [[rating]] como en el paper
 #
-# Comparacion: Experimento 1 vs Experimento 2
-#     Exp1: temperature=0.7, top_p=0.9,  max_tokens=256
-#     Exp2: temperature=0.1, top_p=0.95, max_tokens=512
-#     Ref parametros: Caravaca et al. ACL 2025. arXiv:2602.05712
-#
-# Muestra evaluada: repeticion 1 de cada configuracion
-#     Justificacion: representativa del comportamiento del modelo
-#     y reduce costo de API manteniendo cobertura de los 15 prompts
-#     en las 8 configuraciones (120 pares evaluados)
+# Muestra: repeticion 1 de cada configuracion
+#   40 prompts x 8 configs = 320 evaluaciones
+#   Justificacion: representativa del comportamiento del modelo
 
-import pandas as pd
-import numpy as np
-import requests
+import os
 import json
-import random
 import time
+import random
+import requests
+import pandas as pd
 from pathlib import Path
 from datetime import datetime
 
 PROJECT_ROOT = Path(__file__).parent.parent
 RESULTS_DIR  = PROJECT_ROOT / "results" / "measurements"
 
-# Rubrica del juez basada en MT-Bench (Zheng et al. NeurIPS 2023)
-# Criterio principal: ACCURACY
-# Se incluye instruccion explicita contra sesgo de verbosidad
-# (Zheng et al. 2023: verbosity bias es el sesgo mas comun en LLM-as-a-Judge)
-RUBRICA_JUEZ = """
-Sos un evaluador experto de respuestas de modelos de lenguaje.
-Tu tarea es evaluar la ACCURACY (precision y correctitud) de dos
-respuestas generadas por el mismo modelo para el mismo prompt,
-pero con distintos parametros de inferencia.
+# Prompt del juez — Figura 6, Zheng et al. NeurIPS 2023
+# Traducido al contexto del experimento GREEN-IA
+# Se mantiene la instruccion original del paper sobre verbosidad
+SYSTEM_PROMPT = """Please act as an impartial judge and evaluate \
+the quality of the response provided by an AI assistant to the \
+user question displayed below. Your evaluation should consider \
+factors such as the helpfulness, relevance, accuracy, depth, \
+creativity, and level of detail of the response. Begin your \
+evaluation by providing a short explanation. Be as objective \
+as possible. Do not allow the length of the response to \
+influence your evaluation. After providing your explanation, \
+please rate the response on a scale of 1 to 10 by strictly \
+following this format: "[[rating]]", for example: "Rating: [[5]]"."""
 
-Prompt original:
-{prompt}
+USER_TEMPLATE = """[Question]
+{question}
 
-Respuesta A (parametros: temperature=0.7, max_tokens=256):
-{respuesta_a}
-
-Respuesta B (parametros: temperature=0.1, max_tokens=512):
-{respuesta_b}
-
-Evalua la ACCURACY de cada respuesta segun estos 4 criterios:
-1. Correctitud factual: la respuesta es correcta y sin errores
-2. Precision logica: el razonamiento es valido y coherente
-3. Completitud: responde completamente lo que se pregunto
-4. Concision: sin informacion incorrecta o confusa
-
-Reglas estrictas para evitar sesgos conocidos:
-- NO favorecer la respuesta mas larga por ser mas larga
-- NO favorecer la respuesta que aparece primero
-- Evaluar SOLO la correctitud y precision del contenido
-- Una respuesta corta pero correcta vale mas que una larga con errores
-
-Puntaje 1-10 donde:
-  1-3  = respuesta incorrecta o incoherente
-  4-6  = respuesta parcialmente correcta
-  7-8  = respuesta correcta y completa
-  9-10 = respuesta excelente en todos los criterios
-
-Responde SOLO con este JSON sin texto adicional:
-{{
-  "puntaje_a": <1-10>,
-  "puntaje_b": <1-10>,
-  "ganador": "A" o "B" o "empate",
-  "justificacion_a": "<una oracion sobre la accuracy de A>",
-  "justificacion_b": "<una oracion sobre la accuracy de B>",
-  "razon_ganador": "<una oracion explicando por que gana>"
-}}
-"""
+[The Start of Assistant's Answer]
+{answer}
+[The End of Assistant's Answer]"""
 
 
-def cargar_csvs():
-    """Carga el CSV del Exp1 y del Exp2."""
-    todos = sorted(RESULTS_DIR.glob("experimento_codecarbon_*.csv"))
-    v2s   = sorted(RESULTS_DIR.glob("experimento_params_v2_*.csv"))
+def cargar_csv():
+    """Carga el CSV mas reciente del experimento v1."""
+    archivos = sorted(RESULTS_DIR.glob("experimento_codecarbon_*.csv"))
+    if not archivos:
+        raise FileNotFoundError(
+            "No hay CSV del experimento. "
+            "Corre experimento_codecarbon_v1.py primero."
+        )
+    ruta = archivos[-1]
+    print(f"  CSV: {ruta.name}")
+    df = pd.read_csv(ruta)
 
-    if not todos:
-        raise FileNotFoundError("No hay CSV del Experimento 1")
-    if not v2s:
-        raise FileNotFoundError("No hay CSV del Experimento 2")
+    if "response_text" not in df.columns:
+        raise ValueError(
+            "El CSV no tiene columna response_text. "
+            "Verifica que experimento_codecarbon_v1.py "
+            "incluye ese campo."
+        )
 
-    csv_v1 = todos[-1]
-    csv_v2 = v2s[-1]
-
-    print(f"  Exp1: {csv_v1.name}")
-    print(f"  Exp2: {csv_v2.name}")
-
-    df1 = pd.read_csv(csv_v1)
-    df2 = pd.read_csv(csv_v2)
-
-    # verificar que tienen response_text
-    if "response_text" not in df1.columns:
-        raise ValueError("El CSV del Exp1 no tiene response_text. "
-                         "Corre experimento_codecarbon_v1.py primero.")
-    if "response_text" not in df2.columns:
-        raise ValueError("El CSV del Exp2 no tiene response_text. "
-                         "Corre experimento_codecarbon_v2.py primero.")
-
-    return df1, df2
+    vacias = df["response_text"].isna().sum()
+    print(f"  Filas totales   : {len(df)}")
+    print(f"  Con respuesta   : {len(df) - vacias}")
+    print(f"  Sin respuesta   : {vacias}")
+    return df
 
 
-def llamar_juez(prompt, respuesta_a, respuesta_b, invertir=False, intento=1):
+def llamar_juez(prompt, respuesta, intento=1):
     """
     Llama a Claude Sonnet 4.6 como juez.
-    invertir=True randomiza el orden para mitigar sesgo de posicion
-    (Zheng et al. 2023: position bias es un sesgo conocido del metodo)
+    Implementa Single Answer Grading (Figura 6, Zheng et al. 2023).
+    Retorna el puntaje 1-10 y la justificacion.
     """
-    if invertir:
-        texto_a = respuesta_b
-        texto_b = respuesta_a
-    else:
-        texto_a = respuesta_a
-        texto_b = respuesta_b
-
-    mensaje = RUBRICA_JUEZ.format(
-        prompt     = prompt,
-        respuesta_a= texto_a,
-        respuesta_b= texto_b,
+    mensaje_usuario = USER_TEMPLATE.format(
+        question=prompt,
+        answer=respuesta
     )
 
     try:
         r = requests.post(
             "https://api.anthropic.com/v1/messages",
             headers={
-                "Content-Type" : "application/json",
-                "x-api-key"    : __import__("os").environ.get("ANTHROPIC_API_KEY", ""),
-                "anthropic-version": "2023-06-01"
+                "Content-Type"      : "application/json",
+                "x-api-key"         : os.environ.get("ANTHROPIC_API_KEY", ""),
+                "anthropic-version" : "2023-06-01"
             },
             json={
-                "model"     : "claude-sonnet-4-6",
-                "max_tokens": 400,
-                "messages"  : [{"role": "user", "content": mensaje}]
+                "model"      : "claude-sonnet-4-6",
+                "max_tokens" : 500,
+                "system"     : SYSTEM_PROMPT,
+                "messages"   : [
+                    {"role": "user", "content": mensaje_usuario}
+                ]
             },
             timeout=30
         )
 
         if r.status_code != 200:
-            print(f"    Error API {r.status_code}: {r.text[:100]}")
+            print(f"    Error API {r.status_code}")
             return None
 
         texto = r.json()["content"][0]["text"].strip()
-        texto = texto.replace("```json", "").replace("```", "").strip()
-        resultado = json.loads(texto)
 
-        # si se invirtio el orden, invertir los puntajes de vuelta
-        if invertir:
-            resultado["puntaje_a"], resultado["puntaje_b"] = \
-                resultado["puntaje_b"], resultado["puntaje_a"]
-            resultado["justificacion_a"], resultado["justificacion_b"] = \
-                resultado["justificacion_b"], resultado["justificacion_a"]
-            if resultado["ganador"] == "A":
-                resultado["ganador"] = "B"
-            elif resultado["ganador"] == "B":
-                resultado["ganador"] = "A"
+        # extraer puntaje del formato [[rating]] — Figura 6 del paper
+        puntaje = None
+        if "[[" in texto and "]]" in texto:
+            try:
+                inicio = texto.rfind("[[") + 2
+                fin    = texto.rfind("]]")
+                puntaje = int(texto[inicio:fin].strip())
+            except ValueError:
+                puntaje = None
 
-        return resultado
+        return {
+            "puntaje"       : puntaje,
+            "justificacion" : texto,
+        }
 
     except Exception as e:
         if intento < 3:
             time.sleep(2)
-            return llamar_juez(prompt, respuesta_a, respuesta_b,
-                               invertir, intento + 1)
-        print(f"    Error juez: {e}")
+            return llamar_juez(prompt, respuesta, intento + 1)
+        print(f"    Error: {e}")
         return None
 
 
-def evaluar_pares():
+def evaluar():
     """
-    Para cada combinacion (modelo, cuant, device, prompt_id),
-    toma la primera repeticion de cada experimento y las compara.
+    Evalua la calidad de respuestas usando LLM-as-a-Judge.
+    Usa repeticion 1 de cada configuracion para cada prompt.
+    Total: 40 prompts x 8 configs = 320 evaluaciones.
     """
-    df1, df2 = cargar_csvs()
+    df = cargar_csv()
 
-    # usar solo repeticion 1 para la comparacion
-    # (reducir costo de API y tiempo de evaluacion)
-    df1_rep1 = df1[df1["repetition"] == 1].copy()
-    df2_rep1 = df2[df2["repetition"] == 1].copy()
+    # usar solo repeticion 1
+    df_rep1 = df[df["repetition"] == 1].copy()
+    df_rep1 = df_rep1[
+        df_rep1["response_text"].notna() &
+        (df_rep1["response_text"] != "")
+    ]
 
-    # merge por modelo, cuantizacion, dispositivo y prompt_id
-    merge_cols = ["model", "quantization", "device", "prompt_id"]
-    df_merged = df1_rep1.merge(
-        df2_rep1,
-        on=merge_cols,
-        suffixes=("_v1", "_v2")
-    )
-
-    print(f"\n  {len(df_merged)} pares para evaluar")
-    print(f"  Juez: Claude Sonnet 4.6 (Zheng et al. NeurIPS 2023)")
-    print(f"  Criterio: accuracy — correctitud y precision")
+    print(f"\n  Pares a evaluar : {len(df_rep1)}")
+    print(f"  Juez            : claude-sonnet-4-6")
+    print(f"  Metodo          : Single Answer Grading")
+    print(f"  Referencia      : Zheng et al. NeurIPS 2023 Fig.6")
     print(f"  {'─'*50}")
 
     resultados = []
     errores    = 0
-    total      = len(df_merged)
+    total      = len(df_rep1)
 
-    for idx, fila in df_merged.iterrows():
+    for idx, (_, fila) in enumerate(df_rep1.iterrows()):
         contador = idx + 1
-        config   = f"{fila['model']} {fila['quantization']} {fila['device']}"
-        print(f"  [{contador}/{total}] {config} prompt {fila['prompt_id']}...",
+        config = (f"{fila['model']} {fila['quantization']} "
+                  f"{fila['device']} prompt_{fila['prompt_id']} "
+                  f"cat_{fila.get('categoria','?')}")
+
+        print(f"  [{contador}/{total}] {config}...",
               end=" ", flush=True)
 
-        # randomizar orden para mitigar sesgo de posicion
-        invertir = random.choice([True, False])
-
         evaluacion = llamar_juez(
-            prompt      = fila["prompt_text_v1"],
-            respuesta_a = str(fila["response_text_v1"]),
-            respuesta_b = str(fila["response_text_v2"]),
-            invertir    = invertir
+            prompt   = fila["prompt_text"],
+            respuesta= str(fila["response_text"])
         )
 
-        if evaluacion:
+        if evaluacion and evaluacion["puntaje"] is not None:
             resultados.append({
-                "timestamp_eval"       : datetime.now().isoformat(),
-                "model"                : fila["model"],
-                "quantization"         : fila["quantization"],
-                "device"               : fila["device"],
-                "prompt_id"            : fila["prompt_id"],
-                "prompt_text"          : fila["prompt_text_v1"],
-                # respuestas
-                "response_v1"          : str(fila["response_text_v1"])[:500],
-                "response_v2"          : str(fila["response_text_v2"])[:500],
-                # metricas energeticas Exp1
-                "energia_v1_mwh"       : fila["total_energy_wh_v1"] * 1000,
-                "tokens_gen_v1"        : fila["tokens_generated_v1"],
-                "tps_v1"               : fila["tokens_per_second_v1"],
-                # metricas energeticas Exp2
-                "energia_v2_mwh"       : fila["total_energy_wh_v2"] * 1000,
-                "tokens_gen_v2"        : fila["tokens_generated_v2"],
-                "tps_v2"               : fila["tokens_per_second_v2"],
-                # resultado del juez
-                "puntaje_v1"           : evaluacion["puntaje_a"],
-                "puntaje_v2"           : evaluacion["puntaje_b"],
-                "ganador"              : evaluacion["ganador"],
-                "justificacion_v1"     : evaluacion["justificacion_a"],
-                "justificacion_v2"     : evaluacion["justificacion_b"],
-                "razon_ganador"        : evaluacion["razon_ganador"],
-                "orden_invertido"      : invertir,
-                # parametros de cada experimento
-                "params_v1"            : "temp=0.7 top_p=0.9 max=256",
-                "params_v2"            : "temp=0.1 top_p=0.95 max=512",
-                "juez_modelo"          : "claude-sonnet-4-6",
-                "metodo"               : "LLM-as-a-Judge Zheng et al. NeurIPS 2023",
+                "timestamp_eval"   : datetime.now().isoformat(),
+                "model"            : fila["model"],
+                "quantization"     : fila["quantization"],
+                "device"           : fila["device"],
+                "categoria"        : fila.get("categoria", ""),
+                "prompt_id"        : fila["prompt_id"],
+                "prompt_text"      : fila["prompt_text"],
+                "response_text"    : str(fila["response_text"])[:500],
+                "tokens_generated" : fila["tokens_generated"],
+                "total_energy_wh"  : fila["total_energy_wh"],
+                "energy_per_token" : fila.get("energy_per_token", None),
+                "tokens_per_second": fila["tokens_per_second"],
+                "puntaje_calidad"  : evaluacion["puntaje"],
+                "justificacion"    : evaluacion["justificacion"][:500],
+                "juez_modelo"      : "claude-sonnet-4-6",
+                "metodo_juez"      : "single_answer_grading",
+                "referencia_juez"  : "Zheng et al. NeurIPS 2023 Fig.6",
+                "params_experimento": "temp=0.7 top_p=0.9 max=256",
             })
-            print(f"v1={evaluacion['puntaje_a']}/10  "
-                  f"v2={evaluacion['puntaje_b']}/10  "
-                  f"gana={evaluacion['ganador']}")
+            print(f"puntaje={evaluacion['puntaje']}/10")
         else:
             errores += 1
             print("ERROR")
@@ -291,79 +221,29 @@ def evaluar_pares():
         time.sleep(0.5)
 
     print(f"\n  {'─'*50}")
-    print(f"  Evaluaciones OK: {len(resultados)}  |  Errores: {errores}")
+    print(f"  Evaluaciones OK : {len(resultados)}")
+    print(f"  Errores         : {errores}")
 
     if not resultados:
+        print("  Sin resultados.")
         return None
 
     df_eval = pd.DataFrame(resultados)
 
-    # resumen por configuracion
-    print(f"\n  RESUMEN POR CONFIGURACION")
+    # resumen por configuracion y categoria
+    print(f"\n  RESUMEN POR MODELO Y CONFIGURACION")
     print(f"  {'─'*60}")
     resumen = (df_eval
         .groupby(["model", "quantization", "device"])
         .agg(
-            n              = ("puntaje_v1", "count"),
-            puntaje_v1_med = ("puntaje_v1", "mean"),
-            puntaje_v2_med = ("puntaje_v2", "mean"),
-            energia_v1_med = ("energia_v1_mwh", "mean"),
-            energia_v2_med = ("energia_v2_mwh", "mean"),
-            gana_v1        = ("ganador", lambda x: (x == "A").sum()),
-            gana_v2        = ("ganador", lambda x: (x == "B").sum()),
-            empates        = ("ganador", lambda x: (x == "empate").sum()),
+            n                 = ("puntaje_calidad", "count"),
+            puntaje_medio     = ("puntaje_calidad", "mean"),
+            puntaje_std       = ("puntaje_calidad", "std"),
+            energia_media_mwh = ("total_energy_wh",
+                                 lambda x: x.mean() * 1000),
+            tps_medio         = ("tokens_per_second", "mean"),
         )
         .reset_index()
     )
 
     for _, r in resumen.iterrows():
-        print(f"  {r['model']} {r['quantization']} {r['device']}")
-        print(f"    accuracy  v1={r['puntaje_v1_med']:.1f}/10  "
-              f"v2={r['puntaje_v2_med']:.1f}/10")
-        print(f"    energia   v1={r['energia_v1_med']:.3f}mWh  "
-              f"v2={r['energia_v2_med']:.3f}mWh")
-        print(f"    victorias v1={r['gana_v1']}  "
-              f"v2={r['gana_v2']}  empates={r['empates']}")
-        print()
-
-    # guardar resultados
-    fecha    = datetime.now().strftime("%Y%m%d_%H%M%S")
-    ruta     = RESULTS_DIR / f"evaluacion_calidad_prompts_{fecha}.csv"
-    ruta_res = RESULTS_DIR / f"resumen_calidad_prompts_{fecha}.csv"
-
-    df_eval.to_csv(ruta, index=False)
-    resumen.to_csv(ruta_res, index=False)
-
-    print(f"  Guardado: {ruta.name}")
-    print(f"  Guardado: {ruta_res.name}")
-
-    return ruta
-
-
-if __name__ == "__main__":
-    print("=" * 60)
-    print("  GREEN-IA: Evaluacion de Calidad — LLM-as-a-Judge")
-    print("  Juez: Claude Sonnet 4.6 via API Anthropic")
-    print("  Metodo: Zheng et al. NeurIPS 2023 arXiv:2306.05685")
-    print("  Criterio: accuracy — correctitud y precision")
-    print("  Compara: Exp1 (temp=0.7) vs Exp2 (temp=0.1)")
-    print("=" * 60)
-
-    import os
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        print("\n  ERROR: ANTHROPIC_API_KEY no configurada")
-        print("  Correr: export ANTHROPIC_API_KEY='tu-key'")
-        exit(1)
-
-    try:
-        archivo = evaluar_pares()
-        if archivo:
-            print(f"\n  Resultados en: {archivo}")
-
-    except KeyboardInterrupt:
-        print("\n  Cancelado.")
-
-    except Exception as e:
-        import traceback
-        print(f"\n  Error: {e}")
-        traceback.print_exc()

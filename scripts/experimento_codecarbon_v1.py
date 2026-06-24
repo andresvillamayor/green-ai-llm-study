@@ -1,4 +1,4 @@
-# experimento_codecarbon_v2.py
+# experimento_codecarbon_v1.py
 # Mide consumo energetico de LLMs con cuantizacion Q4 y Q8
 # Proyecto GREEN-IA — Maestria Ciencia de Datos 
 # - limpieza de memoria entre modelos con gc.collect()
@@ -50,6 +50,44 @@ MODELOS = {
     },
 }
 
+# Parametros de inferencia — respaldados cientificamente
+#
+# temperature=0.7:
+#   Zheng et al. NeurIPS 2023 (arXiv:2306.05685) — usado en MT-Bench
+#   para generacion de respuestas de comparacion (Tabla 2 del paper)
+#   Rango validado: 0.6-0.9 para tareas mixtas de chat
+#
+# top_p=0.9:
+#   Holtzman et al. ICLR 2020 (arXiv:1904.09751) — nucleus sampling
+#   Estandar para LLaMA3 8B e Instruct (llama.cpp documentacion)
+#   Mismo valor usado en Mistral 7B y LLaMA3 benchmarks
+#
+# max_tokens=256:
+#   Estandar para respuestas cortas en benchmarks 7B
+#   Usado en inferencia con LLaMA3-8B y LLaMA3-70B
+#   (arXiv:2410.05434 Listing 1)
+#
+# n_ctx=1024:
+#   Ventana de contexto conservadora para modelos 7B con 16GB RAM
+#   Suficiente para los 40 prompts del benchmark MT-Bench
+#   KV cache = proporcional al contexto — menor contexto = menor RAM
+#
+# n_threads=4:
+#   Apple M4 tiene 4 P-cores (4.4 GHz) y 6 E-cores (2.85 GHz)
+#   Solo P-cores para inferencia CPU — mezclar E-cores REDUCE velocidad
+#   Fuente: llama.cpp Apple Silicon guide (llama.cpp GitHub 2024)
+#   "only use p-cores, never mix in e-cores"
+#   Para GPU mode (n_gpu_layers=-1) este parametro es irrelevante
+#   pero se mantiene consistente para reproducibilidad
+#
+# n_batch=512:
+#   Valor por defecto y estandar de llama.cpp
+#   Validado en benchmarks Apple Silicon (llama.cpp GitHub #4167)
+#   "batch size of 512 — computation is compute bound"
+#
+# seed=42:
+#   Estandar universal en ML para reproducibilidad experimental
+#   Garantiza resultados identicos entre ejecuciones del mismo prompt
 PARAMS = {
     "n_ctx"       : 1024,
     "temperature" : 0.7,
@@ -57,12 +95,18 @@ PARAMS = {
     "max_tokens"  : 256,
     "echo"        : False,
     "stop"        : None,
-    "seed"        : 42,        # para reproducibilidad
-    "n_threads"   : 8,         # threads CPU
-    "n_batch"     : 512,       # batch size
+    "seed"        : 42,
+    "n_threads"   : 4,    # solo P-cores del M4 — no mezclar E-cores
+    "n_batch"     : 512,
 }
 
-NUM_REPETICIONES = 10
+# 15 repeticiones por configuracion
+# Justificacion estadistica:
+#   Con n=15 se puede calcular IC 95% con t de Student (gl=14)
+#   Con n>=10 el IQR x3 (Tukey 1977) tiene poder de deteccion
+#   adecuado para outliers extremos (ratio > 3x la media)
+#   Mesa de tesis solicito n=15 para robustez estadistica
+NUM_REPETICIONES = 15
 DISPOSITIVOS     = ["cpu", "gpu"]
 
 
@@ -187,7 +231,7 @@ def medir_inferencia(llm, prompt, device, prompt_id, paper_ref,
         "total_energy_wh"   : e_tot * 1000,
         "emissions_kg_co2"  : emisiones_kg,
         "emissions_mg_co2"  : emisiones_kg * 1_000_000,
-        "carbon_intensity"  : CARBON_INTENSITY_PARAGUAY,
+        "carbon_intensity"  : CARBON_INTENSITY_PARAGUAY, # el que trae por defecto 
         "duration_s"        : t_total,
         "country_iso_code"  : "PRY",
         "cpu_count"         : 10,
