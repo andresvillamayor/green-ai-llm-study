@@ -9,6 +9,10 @@ import time
 import sys
 import platform
 import subprocess
+import os
+# PYTHONUNBUFFERED garantiza que el output se muestra en tiempo real
+# sin esto el progreso puede no verse hasta que el buffer se llena
+os.environ["PYTHONUNBUFFERED"] = "1"
 import numpy as np
 import psutil
 from pathlib import Path
@@ -109,7 +113,7 @@ def cargar_modelo(model_path, device):
 
 
 def medir_inferencia(llm, prompt, device, prompt_id, paper_ref,
-                     repetition, model_name, quant):
+                     repetition, model_name, quant, categoria):
     # el modelo llega ya cargado, no lo cargo aca para no contaminar la medicion
     tracker = EmissionsTracker(
         project_name="green-ia",
@@ -166,6 +170,7 @@ def medir_inferencia(llm, prompt, device, prompt_id, paper_ref,
         "quantization"      : quant,
         "device"            : device,
         "prompt_id"         : prompt_id,
+        "categoria"         : categoria,
         "prompt_text"       : prompt[:100],
         "response_text"     : texto_generado[:2000],
         "paper_reference"   : paper_ref,
@@ -262,6 +267,7 @@ def ejecutar_experimento():
                             llm=llm, prompt=texto, device=dispositivo,
                             prompt_id=i+1, paper_ref=ref, repetition=rep,
                             model_name=nombre_modelo, quant=quant,
+                            categoria=prompt_data['categoria'],
                         )
 
                         if r:
@@ -334,6 +340,14 @@ if __name__ == "__main__":
     print(f"  limpieza de memoria activa entre modelos")
     print(f"  Ctrl+C para cancelar")
     print("=" * 55)
+
+    import subprocess
+    import sys
+
+    # caffeinate mantiene el Mac despierto durante el experimento
+    # es nativo de macOS, no requiere instalacion
+    # referencia: man caffeinate (Apple Developer Documentation)
+    print("  caffeinate activo — el Mac no se dormira durante el experimento")
 
     try:
         archivo = ejecutar_experimento()

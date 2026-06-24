@@ -336,3 +336,61 @@ of LLM Inference in Software Development. ACL 2025.
 arXiv:2602.05712
 — Justifica parametros del Experimento 2 (temperature=0.1,
   top_p=0.95)
+
+---
+
+## GRANULARIDAD EXPERIMENTAL — Segregacion por modelo y categoria
+
+### Recomendacion de la mesa de tesis
+La mesa recomendo agregar mayor granularidad al experimento
+para poder analizar outliers y consumo de memoria separados
+por modelo y por categoria de prompt.
+
+### Implementacion
+Se agrego el campo categoria al CSV del experimento.
+Esto permite filtrar y graficar por:
+
+  Por modelo:
+    Llama-2-7B  — analisis independiente
+    Qwen2.5-7B  — analisis independiente
+
+  Por categoria de prompt:
+    REASONING   — razonamiento logico (prompts 1-2)
+    MATH        — matematicas (prompts 3-4)
+    WRITING     — escritura y resumen (prompts 5-6)
+    EXTRACTION  — extraccion de informacion (prompts 7-8)
+    CODING      — generacion de codigo (prompts 9-10)
+    STEM        — ciencias y tecnologia (prompts 11-12)
+    HUMANITIES  — humanidades (prompt 13)
+    TRANSLATION — traduccion multilingue (prompt 14)
+    LONG_PROMPT — prefill extenso (prompt 15)
+
+### Respaldo cientifico
+La segregacion por tipo de tarea es estandar en benchmarks
+de LLMs:
+
+Zheng et al. (2023). MT-Bench usa 8 categorias de tareas
+para evaluar modelos por separado. NeurIPS 2023.
+arXiv:2306.05685
+
+Liu et al. (2024). LLM-Inference-Bench segrega resultados
+por tipo de tarea para identificar patrones especificos.
+IEEE SC24. arXiv:2411.00136
+
+### Beneficio para el analisis
+Con el campo categoria en el CSV, graficar_resultados.py
+puede generar:
+  - Energia por categoria (REASONING vs MATH vs CODING etc)
+  - Outliers por categoria (que tipo de tarea genera mas outliers)
+  - Comparacion Q4 vs Q8 por categoria
+  - Consumo CPU/GPU/RAM por categoria
+
+### Control de ejecucion
+Para evitar que el Mac M4 entre en modo reposo durante el
+experimento (4-5 horas) se usa caffeinate, herramienta
+nativa de macOS:
+
+  PYTHONUNBUFFERED=1 caffeinate -i python scripts/experimento_codecarbon_v1.py
+
+caffeinate referencia: Apple Developer Documentation
+PYTHONUNBUFFERED: output en tiempo real sin buffering
