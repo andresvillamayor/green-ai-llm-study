@@ -1,2 +1,5 @@
 {
+    "terminal.integrated.env.osx": {
+        "ANTHROPIC_API_KEY": "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"
+    }
 }

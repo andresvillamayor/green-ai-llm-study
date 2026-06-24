@@ -953,3 +953,91 @@ El trabajo paso de tener debilidades metodologicas
 importantes a tener una base solida para responder
 punto por punto a la mesa. Lo que queda pendiente
 es redaccion y bibliografia, no experimentos nuevos.
+
+---
+
+## EXTENSION: EVALUACION DE CALIDAD
+
+Adicion al experimento original respondiendo a:
+"¿Q4 sacrifica calidad respecto a Q8?"
+
+Implementacion:
+- Campo response_text agregado al CSV del experimento
+- Script evaluar_calidad_llm_judge.py (por desarrollar)
+- Juez: Claude Sonnet 4.6 via API Anthropic
+- Metodo: LLM-as-a-Judge (Zheng et al. NeurIPS 2023)
+- Puntaje 1-10 por respuesta con justificacion
+
+Referencia adicional a agregar en bibliografia:
+Zheng et al. (2023). Judging LLM-as-a-Judge with MT-Bench
+y Chatbot Arena. NeurIPS 2023. arXiv:2306.05685
+(ya esta en [1] de la bibliografia actual)
+
+---
+
+## EXTENSION: EVALUACION DE CALIDAD — LLM-as-a-Judge
+
+Pregunta adicional: la cuantizacion Q4 sacrifica calidad
+respecto a Q8?
+
+Respaldo cientifico:
+Zheng et al. (2023). NeurIPS 2023. arXiv:2306.05685
+Acuerdo juez LLM vs humanos: mayor al 80%.
+Ya incluido como referencia [1] en la bibliografia.
+
+Implementacion:
+- Campo response_text agregado al CSV
+- Script evaluar_calidad_llm_judge.py (por desarrollar)
+- Juez: Claude Sonnet 4.6 via API Anthropic
+- Rubrica: precision, coherencia, completitud, concision
+- Puntaje 1-10 por respuesta con justificacion
+
+Sesgos documentados y mitigaciones:
+- Sesgo posicion: orden randomizado
+- Sesgo verbosidad: concision en rubrica explicita
+- Sesgo auto-preferencia: no aplica (juez distinto a evaluados)
+
+Si la mesa pregunta por que Claude como juez:
+"Claude Sonnet 4.6 es un modelo de clase similar a GPT-4,
+que es el juez de referencia en MT-Bench. El paper de
+Zheng et al. 2023 valida jueces de esta categoria.
+Ademas, Claude no evalua sus propias respuestas, lo que
+elimina el sesgo de auto-preferencia mas problematico
+del metodo."
+
+---
+
+## EVALUAR_CALIDAD_PROMPTS.PY — RESPUESTAS PARA LA MESA
+
+Si la mesa pregunta por que Claude como juez:
+"Claude Sonnet 4.6 es equivalente a GPT-4 en capacidad evaluativa.
+El paper de Zheng et al. NeurIPS 2023 valida jueces de esta
+categoria con mas del 80% de acuerdo con humanos. Ademas, Claude
+no evalua sus propias respuestas — evalua Llama y Qwen — por lo
+que el sesgo de auto-preferencia documentado en Panickssery et al.
+2024 no aplica en este estudio."
+
+Si la mesa pregunta por el sesgo de posicion:
+"El orden de presentacion de las dos respuestas se randomiza
+en cada llamada al juez. Si el orden se invierte, los puntajes
+se reordenan antes de guardar. Esto sigue la recomendacion
+directa de Zheng et al. 2023."
+
+Si la mesa pregunta por que solo repeticion 1:
+"La repeticion 1 es representativa del comportamiento del modelo
+para cada configuracion. Evaluar las 10 repeticiones multiplicaria
+el costo de API por 10 sin cambiar las conclusiones, ya que el
+juez evalua la calidad de la respuesta, no la variabilidad
+energetica que ya esta capturada en el CSV principal."
+
+Si la mesa pregunta por accuracy vs otros criterios:
+"Accuracy es el criterio central de MT-Bench (Zheng et al. 2023).
+Para prompts de razonamiento, matematicas y STEM, la correctitud
+factual es la metrica mas relevante. Se complementa con concision
+para mitigar el sesgo de verbosidad documentado en el mismo paper."
+
+## REFERENCIAS NUEVAS PARA AGREGAR A BIBLIOGRAFIA
+
+[18] Panickssery et al. (2024). LLM Evaluators Recognize and
+     Favor Their Own Generations. arXiv:2404.13076 (preprint)
+     — Documenta sesgo de auto-preferencia en LLM-as-a-Judge

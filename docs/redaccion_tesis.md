@@ -207,3 +207,132 @@ reproducible. En el contexto energetico de Paraguay
 bajas, aunque el patron de diferencias entre
 configuraciones es relevante para decisiones de
 despliegue en entornos con mayor intensidad carbonica.
+
+---
+
+## EVALUACION DE CALIDAD — LLM-as-a-Judge
+
+### Respaldo cientifico
+El paradigma LLM-as-a-Judge esta respaldado por Zheng et al.
+(NeurIPS 2023), paper ya incluido en la bibliografia como [1].
+El estudio demuestra que jueces LLM alcanzan mas del 80% de
+acuerdo con preferencias humanas, el mismo nivel de acuerdo
+entre humanos.
+
+Referencia: Zheng et al. (2023). Judging LLM-as-a-Judge with
+MT-Bench and Chatbot Arena. NeurIPS 2023. arXiv:2306.05685
+
+### Pregunta de investigacion adicional
+La cuantizacion Q4 reduce la calidad de las respuestas
+respecto a Q8, y en que proporcion se compensa ese trade-off
+con el ahorro energetico?
+
+### Diseno
+- 15 prompts x 8 configuraciones x 2 repeticiones = 240 inferencias
+- El texto de cada respuesta se guarda en el CSV (campo response_text)
+- Script juez: scripts/evaluar_calidad_llm_judge.py
+- Juez: Claude Sonnet 4.6 via API de Anthropic
+- Claude evalua Llama y Qwen — no hay sesgo de auto-preferencia
+- Puntaje: 1-10 por respuesta con justificacion escrita
+- Salida: tabla trade-off calidad vs energia por configuracion
+
+### Criterios de evaluacion del juez (rubrica explicita)
+Se proporcionan al juez criterios explicitos para reducir
+sesgo de verbosidad y sesgo de posicion:
+
+1. Precision factual (la respuesta es correcta)
+2. Coherencia logica (tiene sentido el razonamiento)
+3. Completitud (responde lo que se pregunto)
+4. Concision (sin relleno innecesario)
+
+Cada criterio pesa 25% del puntaje final (1-10).
+
+### Limitaciones conocidas del metodo — documentadas
+Sesgos identificados en la literatura (Zheng et al. 2023):
+
+Sesgo de posicion:
+El juez tiende a preferir la primera respuesta que lee.
+Mitigacion: se randomiza el orden de presentacion de
+respuestas en cada evaluacion.
+
+Sesgo de verbosidad:
+El juez tiende a preferir respuestas mas largas.
+Mitigacion: concision es criterio explicito de la rubrica
+y se instruye al juez a penalizar relleno innecesario.
+
+Sesgo de auto-preferencia:
+Un modelo tiende a preferir sus propias respuestas.
+Mitigacion: no aplica en este estudio. Claude Sonnet 4.6
+evalua respuestas de Llama-2-7B y Qwen2.5-7B, modelos
+distintos al juez. No hay conflicto de intereses.
+
+### Hipotesis
+Q4 puede mostrar menor puntaje en tareas de razonamiento
+complejo (STEM, matematicas) pero puntaje similar en tareas
+simples (extraccion, traduccion).
+Si la diferencia de calidad es menor al 10% y el ahorro
+energetico es del 40-80%, Q4 es preferible para despliegue
+en entornos con restriccion energetica.
+
+### Redaccion para tesis
+"Se implemento una evaluacion de calidad de respuestas
+siguiendo el paradigma LLM-as-a-Judge (Zheng et al.,
+NeurIPS 2023). Claude Sonnet 4.6 actuo como juez
+evaluando las respuestas generadas por cada configuracion
+segun una rubrica de cuatro criterios: precision factual,
+coherencia logica, completitud y concision. Para mitigar
+el sesgo de posicion, el orden de presentacion de las
+respuestas se randomizo en cada evaluacion. El sesgo de
+auto-preferencia no aplica dado que el juez (Claude) y
+los modelos evaluados (Llama-2-7B, Qwen2.5-7B) son
+distintos. Los resultados permiten analizar el trade-off
+entre calidad de respuesta y consumo energetico para
+cada nivel de cuantizacion."
+
+### Estado
+PENDIENTE — script evaluar_calidad_llm_judge.py por desarrollar
+
+### Implementacion del juez — detalles tecnicos
+
+Muestra evaluada:
+Se evalua la repeticion 1 de cada configuracion para los 15 prompts
+en las 8 configuraciones = 120 pares evaluados.
+Justificacion: la repeticion 1 es representativa del comportamiento
+del modelo y reduce el costo de API preservando la cobertura completa
+del espacio experimental.
+
+Mitigacion de position bias:
+El orden de presentacion de las respuestas A y B se randomiza
+en cada llamada al juez mediante random.choice([True, False]).
+Si el orden se invierte, los puntajes se reordenan antes de guardar,
+garantizando que puntaje_a siempre corresponde al Experimento 1
+independientemente del orden de presentacion al juez.
+
+Resultado esperado:
+Un CSV con 120 filas conteniendo para cada par:
+  - puntaje accuracy Exp1 (1-10)
+  - puntaje accuracy Exp2 (1-10)
+  - ganador (A=Exp1, B=Exp2, empate)
+  - energia Exp1 vs Exp2
+  - justificacion del juez
+
+La tabla final de trade-off calidad-energia responde:
+La configuracion con temperature=0.1 produce mejor accuracy
+que temperature=0.7, y a que costo energetico?
+
+### Referencias del metodo de evaluacion
+
+Zheng et al. (2023). Judging LLM-as-a-Judge with MT-Bench
+and Chatbot Arena. NeurIPS 2023. arXiv:2306.05685
+— Metodo principal. Acuerdo juez vs humanos: >80%
+
+Panickssery et al. (2024). LLM Evaluators Recognize and
+Favor Their Own Generations. arXiv:2404.13076
+— Documenta sesgo de auto-preferencia. No aplica en este
+  estudio porque el juez y los evaluados son modelos distintos.
+
+Caravaca et al. (2025). Towards Green AI: Decoding the Energy
+of LLM Inference in Software Development. ACL 2025.
+arXiv:2602.05712
+— Justifica parametros del Experimento 2 (temperature=0.1,
+  top_p=0.95)
