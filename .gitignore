@@ -1,17 +1,63 @@
-# entorno virtual
+# ─── Machine-specific config ─────────────────────────────────────────────────
+config.yaml
+
+# ─── Virtual environment ──────────────────────────────────────────────────────
 venv/
 
-# modelos (pesan GB)
+# ─── Model files (multi-GB) ───────────────────────────────────────────────────
 models/
 
-# cache de Python
+# ─── MT-Bench official dataset (downloaded separately) ───────────────────────
+data/mt_bench/official/question.jsonl
+data/mt_bench/official/judge_prompts.jsonl
+
+# ─── Generated experiment outputs ────────────────────────────────────────────
+results/raw/
+results/judge/
+results/summary/
+results/optimization/
+results/plots/
+results/logs/
+results/codecarbon/
+results/backups/
+
+# Keep metadata structure but ignore generated content
+results/metadata/experiment_manifest.json
+results/metadata/model_hashes.csv
+results/metadata/dataset_manifest.csv
+results/metadata/config_snapshot.yaml
+results/metadata/requirements_freeze.txt
+
+# ─── Keep .gitkeep files so empty dirs are tracked ───────────────────────────
+!results/raw/.gitkeep
+!results/judge/.gitkeep
+!results/summary/.gitkeep
+!results/optimization/.gitkeep
+!results/plots/energy/.gitkeep
+!results/plots/quality/.gitkeep
+!results/plots/efficiency/.gitkeep
+!results/plots/latency/.gitkeep
+!results/plots/pareto/.gitkeep
+!results/plots/boxplots/.gitkeep
+!results/plots/heatmaps/.gitkeep
+!results/plots/ranking/.gitkeep
+!results/plots/optimization/.gitkeep
+!results/logs/.gitkeep
+!results/codecarbon/.gitkeep
+!results/backups/.gitkeep
+
+# ─── Python cache ─────────────────────────────────────────────────────────────
 __pycache__/
 *.pyc
+*.pyo
 
-# backups intermedios del experimento
-results/measurements/backup_*.csv
-
-# Mac
+# ─── OS ───────────────────────────────────────────────────────────────────────
 .DS_Store
-results/measurements/respaldo/
+
+# ─── IDE ──────────────────────────────────────────────────────────────────────
 .vscode/settings.json
+powermetrics_log.txt
+results/smoke_test/
+data/mt_bench/official/question.jsonl
+data/mt_bench/official/judge_prompts.jsonl
+results/metadata/

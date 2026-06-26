@@ -1,0 +1,120 @@
+optimization:
+  enabled: true
+  phase: phase_2_parameter_optimization
+  baseline_source: results/summary/summary_full_ranking.csv
+  selected_configuration: auto_best_pareto
+  objective: constrained_energy_minimization
+
+  # ── Quality constraint (P22) ──────────────────────────────────────────────
+  # The Phase 2 winner must not degrade quality below these thresholds vs. the
+  # Phase 1 baseline.  Both conditions must hold simultaneously.
+  quality_constraint:
+    metric: mean_quality_score
+    max_allowed_drop_absolute: 0.25          # winner >= baseline - 0.25 pts
+    max_allowed_drop_relative_percent: 3.0   # winner >= baseline * 0.97
+    require_non_inferiority: true
+
+  # ── Energy objective ──────────────────────────────────────────────────────
+  primary_energy_metric: baseline_corrected_energy
+  primary_energy_objective: minimize_energy_wh_per_1k_output_tokens
+
+  secondary_objectives:
+    - minimize_latency_seconds
+    - maximize_tokens_per_joule
+    - maximize_quality_per_joule
+    - minimize_edp
+
+  # ── Search strategy ───────────────────────────────────────────────────────
+  search_method: random_search          # random_search | grid_search
+  max_trials: 50
+  repetitions_per_trial: 5             # Stage A: quick evaluation
+  validation_repetitions: 15           # Stage B: full validation (same as Phase 1)
+  random_seed: 42
+  stage_a_pareto_top_n: 5              # candidates forwarded from Stage A → Stage B
+
+  # ── Validation ────────────────────────────────────────────────────────────
+  validation:
+    enabled: true
+    use_same_mt_bench_subset: true     # always true — P5, P7
+
+  # ── Validation split (optional) ───────────────────────────────────────────
+  # When enabled, Stage A (parameter search) uses only the tuning prompts and
+  # Stage B (full validation) uses only the validation prompts.  This ensures
+  # the final configuration is not selected solely based on tuning performance.
+  #
+  # strategy: by_category — assign categories to tuning or validation explicitly.
+  #           random       — random split controlled by tuning_fraction (seed=42).
+  #
+  # With strategy=by_category the tuning_fraction field is ignored.
+  # Questions not listed in tuning_categories are assigned to validation.
+  #
+  # To enable: set enabled: true and choose a strategy.
+  validation_split:
+    enabled: false
+    strategy: by_category
+    tuning_categories:
+      - coding
+      - math
+      - reasoning
+      - stem
+    validation_categories:
+      - writing
+      - roleplay
+      - extraction
+      - humanities
+    tuning_fraction: 0.6               # used only when strategy: random
+
+  # ── Optimizable parameters ────────────────────────────────────────────────
+  # Only these six parameters are included in the search space.
+  # Each entry lists the discrete values the optimizer may choose from.
+  #
+  # n_ctx, n_batch, n_threads  — affect model loading (P2: loaded outside tracker).
+  #                               Trials with the same (n_ctx, n_batch, n_threads)
+  #                               reuse a single model load to reduce overhead.
+  # max_tokens                 — maximum completion length per turn.
+  # repeat_penalty             — repetition penalty applied during generation.
+  #                               1.0 = no penalty.  Effective even under greedy
+  #                               decoding (temperature = 0.0) because it modifies
+  #                               logits before argmax.
+  # top_k                      — top-k filtering before sampling.  With temperature
+  #                               = 0.0 (greedy) the selected token is always the
+  #                               argmax, so top_k does not change the output.
+  #                               Included for completeness; the optimizer will
+  #                               find it inert and collapse to any value.
+  parameter_space:
+    n_ctx:
+      values: [2048, 4096]
+    max_tokens:
+      values: [512, 768, 1024]
+    n_batch:
+      values: [128, 256, 512, 1024]
+    n_threads:
+      values: [4, 6, 8, 10, 12]
+    repeat_penalty:
+      values: [1.0, 1.05, 1.1]
+    top_k:
+      values: [20, 40, 80]
+
+  # ── Fixed parameters ──────────────────────────────────────────────────────
+  # These values are locked for all Phase 2 trials.
+  # Rationale: temperature = 0.0 forces greedy (deterministic) decoding so that
+  # energy differences between trials reflect only hardware/parameter efficiency,
+  # not stochastic variation in output length.  top_p = 1.0 disables nucleus
+  # sampling for the same reason.  seed = 42 is kept constant because with
+  # temperature = 0.0 it has no effect, but is recorded for reproducibility.
+  fixed_parameters:
+    temperature: 0.0    # greedy decoding — mandatory for deterministic energy measurement
+    top_p: 1.0          # nucleus sampling disabled
+    seed: 42            # reproducibility; no effect under greedy decoding
+
+  # ── What must not change between Phase 1 and Phase 2 ─────────────────────
+  forbidden_changes:
+    model_file: true           # same GGUF file as Phase 1 baseline
+    quantization: true         # same quantization level as Phase 1 baseline
+    prompt_text: true          # verbatim MT-Bench prompts (P5)
+    benchmark_subset: true     # same 40-question subset (P7)
+    judge_prompt: true         # same judge template (P4)
+    temperature: true          # must remain 0.0
+    top_p: true                # must remain 1.0
+
+  output_dir: results/optimization
