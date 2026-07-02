@@ -76,11 +76,37 @@ _PALETTE = [
 ]
 _QUANT_MARKERS = {"q4": "o", "q8": "s"}
 _QUANT_HATCHES = {"q4": "",   "q8": "///"}
+_EXPERIMENT_SUBTITLE = (
+    "Hardware: Apple Mac Mini M4 16GB | Backend: Metal GPU | MT-Bench 40 prompts"
+)
+_FOOTER_NOTE = (
+    "Medición: CodeCarbon 3.2.6 | Parámetros: temperature=0.0, seed=42, n_ctx=4096"
+)
+_MSG_INSUFFICIENT = "Datos insuficientes — pendiente experimento completo"
+_NEGLIGIBLE_THRESHOLD = 0.001
+
+
+_CONFIG_LABELS: dict[str, str] = {
+    "llama-2-7b/q4":  "Llama-2-7B Q4 (4-bit)",
+    "llama-2-7b/q8":  "Llama-2-7B Q8 (8-bit)",
+    "qwen2.5-7b/q4":  "Qwen2.5-7B Q4 (4-bit)",
+    "qwen2.5-7b/q8":  "Qwen2.5-7B Q8 (8-bit)",
+}
+
+
+def _fmt_config(raw: Any) -> str:
+    return _CONFIG_LABELS.get(str(raw), str(raw))
+
+
+def _apply_subtitle(fig: plt.Figure, ax: plt.Axes) -> None:
+    """Promote the ax title to fig suptitle; set experiment context as subtitle."""
+    fig.suptitle(ax.get_title(), fontsize=12, y=1.02)
+    ax.set_title(_EXPERIMENT_SUBTITLE, fontsize=8, color="#666", style="italic")
 
 
 def _setup_style() -> None:
     plt.rcParams.update({
-        "figure.dpi":         150,
+        "figure.dpi":         300,
         "figure.facecolor":   "white",
         "axes.facecolor":     "white",
         "axes.grid":          True,
@@ -108,7 +134,9 @@ def _ci95(s: pd.Series) -> float:
 
 def _save(fig: plt.Figure, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(path, bbox_inches="tight", dpi=150)
+    fig.text(0.5, -0.02, _FOOTER_NOTE, ha="center", va="top",
+             fontsize=7, color="#888", transform=fig.transFigure)
+    fig.savefig(path, bbox_inches="tight", dpi=300)
     plt.close(fig)
     try:
         print(f"    {path.relative_to(ROOT)}")
@@ -151,6 +179,7 @@ def _grouped_bar(
     ylabel: str,
     cmap: Optional[dict] = None,
     hmap: Optional[dict] = None,
+    val_fmt: str = ".2f",
 ) -> None:
     """Grouped bar chart with CI95 error bars, drawn on ax."""
     x_vals = sorted(agg_df[x_col].dropna().unique().tolist(), key=str)
@@ -159,8 +188,15 @@ def _grouped_bar(
     if not nx or not ng:
         ax.set_title(title + " (no data)")
         return
+    _vals = agg_df["mean"].dropna().to_numpy()
+    if len(_vals) > 0 and float(np.nanmax(np.abs(_vals))) < _NEGLIGIBLE_THRESHOLD:
+        ax.set_title(title)
+        ax.text(0.5, 0.5, _MSG_INSUFFICIENT, ha="center", va="center",
+                transform=ax.transAxes, fontsize=10, color="#888", style="italic")
+        return
     w  = 0.75 / ng
     xs = np.arange(nx)
+    bar_info = []
     for gi, gv in enumerate(g_vals):
         sub   = agg_df[agg_df[group_col] == gv]
         xm    = dict(zip(sub[x_col], sub["mean"]))
@@ -169,16 +205,29 @@ def _grouped_bar(
         errs  = [float(xe.get(xv, 0.0))   for xv in x_vals]
         clr   = (cmap or {}).get(str(gv), _PALETTE[gi % len(_PALETTE)])
         htch  = (hmap or {}).get(str(gv), "")
-        ax.bar(xs + gi * w, means, w, label=str(gv),
-               color=clr, hatch=htch, alpha=0.85,
-               yerr=errs, capsize=3, error_kw={"elinewidth": 0.8, "ecolor": "#555"})
+        rects = ax.bar(xs + gi * w, means, w, label=_fmt_config(gv),
+                       color=clr, hatch=htch, alpha=0.85,
+                       yerr=errs, capsize=3, error_kw={"elinewidth": 0.8, "ecolor": "#555"})
+        bar_info.append((rects, means, errs))
     ax.set_xticks(xs + w * (ng - 1) / 2)
-    ax.set_xticklabels([str(v) for v in x_vals], rotation=35, ha="right")
+    ax.set_xticklabels([_fmt_config(v) for v in x_vals], rotation=35, ha="right")
     ax.set_title(title)
     ax.set_ylabel(ylabel)
     ax.set_ylim(bottom=0)
+    ax.set_ylim(top=ax.get_ylim()[1] * 1.12)
     ax.set_axisbelow(True)
     ax.legend(loc="upper right", ncol=max(1, ng // 4))
+    offset = 0.01 * ax.get_ylim()[1]
+    for rects, means, errs in bar_info:
+        for rect, m, e in zip(rects, means, errs):
+            if np.isnan(m):
+                continue
+            ax.text(
+                rect.get_x() + rect.get_width() / 2,
+                max(m, 0) + e + offset,
+                format(m, val_fmt),
+                ha="center", va="bottom", fontsize=6.5, color="#333",
+            )
 
 
 def _simple_bar(
@@ -190,19 +239,37 @@ def _simple_bar(
     cmap: Optional[dict] = None,
     sort_col: str = "mean",
     ascending: bool = False,
+    val_fmt: str = ".2f",
 ) -> None:
     """Single-group horizontal or vertical bar chart."""
     d = agg_df.sort_values(sort_col, ascending=ascending, na_position="last")
+    _vals = d["mean"].dropna().to_numpy()
+    if len(_vals) > 0 and float(np.nanmax(np.abs(_vals))) < _NEGLIGIBLE_THRESHOLD:
+        ax.set_title(title)
+        ax.text(0.5, 0.5, _MSG_INSUFFICIENT, ha="center", va="center",
+                transform=ax.transAxes, fontsize=10, color="#888", style="italic")
+        return
     colors = [(cmap or {}).get(str(c), _PALETTE[i % len(_PALETTE)])
               for i, c in enumerate(d[x_col])]
-    ax.bar(range(len(d)), d["mean"], color=colors, alpha=0.85,
-           yerr=d["ci"], capsize=3, error_kw={"elinewidth": 0.8, "ecolor": "#555"})
+    rects = ax.bar(range(len(d)), d["mean"], color=colors, alpha=0.85,
+                   yerr=d["ci"], capsize=3, error_kw={"elinewidth": 0.8, "ecolor": "#555"})
     ax.set_xticks(range(len(d)))
-    ax.set_xticklabels(d[x_col].astype(str), rotation=35, ha="right")
+    ax.set_xticklabels([_fmt_config(v) for v in d[x_col]], rotation=35, ha="right")
     ax.set_title(title)
     ax.set_ylabel(ylabel)
     ax.set_ylim(bottom=0)
+    ax.set_ylim(top=ax.get_ylim()[1] * 1.12)
     ax.set_axisbelow(True)
+    offset = 0.01 * ax.get_ylim()[1]
+    for rect, m, e in zip(rects, d["mean"].values, d["ci"].values):
+        if pd.isna(m):
+            continue
+        ax.text(
+            rect.get_x() + rect.get_width() / 2,
+            max(float(m), 0) + float(e) + offset,
+            format(float(m), val_fmt),
+            ha="center", va="bottom", fontsize=7, color="#333",
+        )
 
 
 def _horizontal_bar(
@@ -213,21 +280,39 @@ def _horizontal_bar(
     xlabel: str,
     best_high: bool = True,
     cmap: Optional[dict] = None,
+    val_fmt: str = ".2f",
 ) -> None:
     """Horizontal ranked bar chart."""
     d = agg_df.sort_values("mean", ascending=not best_high, na_position="last")
+    _vals = d["mean"].dropna().to_numpy()
+    if len(_vals) > 0 and float(np.nanmax(np.abs(_vals))) < _NEGLIGIBLE_THRESHOLD:
+        ax.set_title(title)
+        ax.text(0.5, 0.5, _MSG_INSUFFICIENT, ha="center", va="center",
+                transform=ax.transAxes, fontsize=10, color="#888", style="italic")
+        return
     ys = np.arange(len(d))
     colors = [(cmap or {}).get(str(c), _PALETTE[i % len(_PALETTE)])
               for i, c in enumerate(d[label_col])]
-    ax.barh(ys, d["mean"], color=colors, alpha=0.85,
-            xerr=d["ci"], capsize=3, error_kw={"elinewidth": 0.8, "ecolor": "#555"})
+    rects = ax.barh(ys, d["mean"], color=colors, alpha=0.85,
+                    xerr=d["ci"], capsize=3, error_kw={"elinewidth": 0.8, "ecolor": "#555"})
     ax.set_yticks(ys)
-    ax.set_yticklabels(d[label_col].astype(str), fontsize=9)
+    ax.set_yticklabels([_fmt_config(v) for v in d[label_col]], fontsize=9)
     ax.set_title(title)
     ax.set_xlabel(xlabel)
     ax.set_xlim(left=0)
+    ax.set_xlim(right=ax.get_xlim()[1] * 1.15)
     ax.set_axisbelow(True)
     ax.invert_yaxis()
+    offset = 0.01 * ax.get_xlim()[1]
+    for rect, m, e in zip(rects, d["mean"].values, d["ci"].values):
+        if pd.isna(m):
+            continue
+        ax.text(
+            max(float(m), 0) + float(e) + offset,
+            rect.get_y() + rect.get_height() / 2,
+            format(float(m), val_fmt),
+            ha="left", va="center", fontsize=7, color="#333",
+        )
 
 
 # ─── Data loading ───────────────────────────────────────────────────────────────
@@ -345,15 +430,17 @@ def plot_energy(df: pd.DataFrame, out: Path, sfx: str) -> None:
         agg_cat = _agg(df, [cat, cfg], col, c_ok)
         if not agg_cat.empty:
             fig, ax = plt.subplots(
-                figsize=(max(9, len(agg_cat[cat].unique()) * 1.4 + 2), 5))
+                figsize=(12, 7))
             _grouped_bar(ax, agg_cat, cat, cfg,
                          f"{ylabel} by Category", ylabel, cmap=cm)
+            _apply_subtitle(fig, ax)
             _save(fig, out / f"{stem}_by_category.png")
 
         agg_cfg = _agg(df, [cfg], col, c_ok)
         if not agg_cfg.empty:
-            fig, ax = plt.subplots(figsize=(max(6, len(agg_cfg) * 1.6 + 1), 5))
+            fig, ax = plt.subplots(figsize=(12, 7))
             _simple_bar(ax, agg_cfg, cfg, f"{ylabel} by Configuration", ylabel, cmap=cm)
+            _apply_subtitle(fig, ax)
             _save(fig, out / f"{stem}_by_config.png")
 
 
@@ -373,21 +460,23 @@ def plot_quality(df: pd.DataFrame, out: Path) -> None:
         agg_cat = _agg(df, [cat, cfg], dim, j_ok)
         if not agg_cat.empty:
             fig, ax = plt.subplots(
-                figsize=(max(9, len(agg_cat[cat].unique()) * 1.4 + 2), 5))
+                figsize=(12, 7))
             _grouped_bar(ax, agg_cat, cat, cfg,
                          f"{label} by Category", f"Mean {label}", cmap=cm)
             if dim == "score":
                 ax.set_ylim(0, 10.5)
+            _apply_subtitle(fig, ax)
             _save(fig, out / f"quality_{dim}_by_category.png")
 
     # quality score by config (single bar)
     if "score" in df.columns:
         agg = _agg(df, [cfg], "score", j_ok)
         if not agg.empty:
-            fig, ax = plt.subplots(figsize=(max(6, len(agg) * 1.6 + 1), 5))
+            fig, ax = plt.subplots(figsize=(12, 7))
             _simple_bar(ax, agg, cfg, "Quality Score by Configuration",
                         "Mean Score (1–10)", cmap=cm)
             ax.set_ylim(0, 10.5)
+            _apply_subtitle(fig, ax)
             _save(fig, out / "quality_score_by_config.png")
 
     # Subdimension horizontal bars per config
@@ -395,7 +484,7 @@ def plot_quality(df: pd.DataFrame, out: Path) -> None:
     configs  = sorted(df[cfg].dropna().unique().tolist(), key=str) if cfg in df.columns else []
     if sub_dims and configs:
         fig, axes = plt.subplots(1, len(configs),
-                                 figsize=(len(configs) * 5, 5), sharey=True)
+                                 figsize=(12, 7), sharey=True)
         if len(configs) == 1:
             axes = [axes]
         sub_j = df[j_ok] if j_ok.any() else df
@@ -410,9 +499,11 @@ def plot_quality(df: pd.DataFrame, out: Path) -> None:
             ax.set_yticks(ys)
             ax.set_yticklabels([d.replace("_", " ") for d in sub_dims], fontsize=8)
             ax.set_xlim(0, 10.5)
-            ax.set_title(c, fontsize=9)
+            ax.set_title(_fmt_config(c), fontsize=9)
             ax.set_axisbelow(True)
-        fig.suptitle("Quality Subdimensions by Configuration", fontsize=11, y=1.01)
+        fig.suptitle("Quality Subdimensions by Configuration", fontsize=12, y=1.05)
+        fig.text(0.5, 1.01, _EXPERIMENT_SUBTITLE, ha="center", fontsize=8,
+                 color="#666", style="italic", transform=fig.transFigure)
         plt.tight_layout()
         _save(fig, out / "quality_subdims_overview.png")
 
@@ -439,16 +530,18 @@ def plot_efficiency(df: pd.DataFrame, out: Path, sfx: str) -> None:
 
         agg_cfg = _agg(df, [cfg], col)
         if not agg_cfg.empty:
-            fig, ax = plt.subplots(figsize=(max(6, len(agg_cfg) * 1.6 + 1), 5))
+            fig, ax = plt.subplots(figsize=(12, 7))
             _simple_bar(ax, agg_cfg, cfg, f"{ylabel} by Configuration", ylabel, cmap=cm)
+            _apply_subtitle(fig, ax)
             _save(fig, out / f"{stem}_by_config.png")
 
         agg_cat = _agg(df, [cat, cfg], col)
         if not agg_cat.empty:
             fig, ax = plt.subplots(
-                figsize=(max(9, len(agg_cat[cat].unique()) * 1.4 + 2), 5))
+                figsize=(12, 7))
             _grouped_bar(ax, agg_cat, cat, cfg,
                          f"{ylabel} by Category", ylabel, cmap=cm)
+            _apply_subtitle(fig, ax)
             _save(fig, out / f"{stem}_by_category.png")
 
 
@@ -466,15 +559,17 @@ def plot_latency(df: pd.DataFrame, out: Path) -> None:
     agg_cat = _agg(df, [cat, cfg], col, c_ok)
     if not agg_cat.empty:
         fig, ax = plt.subplots(
-            figsize=(max(9, len(agg_cat[cat].unique()) * 1.4 + 2), 5))
+            figsize=(12, 7))
         _grouped_bar(ax, agg_cat, cat, cfg,
-                     "Latency by Category", "Mean Latency (s)", cmap=cm)
+                     "Latency by Category", "Mean Latency (s)", cmap=cm, val_fmt=".1f")
+        _apply_subtitle(fig, ax)
         _save(fig, out / "latency_by_category.png")
 
     agg_cfg = _agg(df, [cfg], col, c_ok)
     if not agg_cfg.empty:
-        fig, ax = plt.subplots(figsize=(max(6, len(agg_cfg) * 1.6 + 1), 5))
-        _simple_bar(ax, agg_cfg, cfg, "Latency by Configuration", "Mean Latency (s)", cmap=cm)
+        fig, ax = plt.subplots(figsize=(12, 7))
+        _simple_bar(ax, agg_cfg, cfg, "Latency by Configuration", "Mean Latency (s)", cmap=cm, val_fmt=".1f")
+        _apply_subtitle(fig, ax)
         _save(fig, out / "latency_by_config.png")
 
 
@@ -517,7 +612,7 @@ def plot_pareto_scatter(df: pd.DataFrame, out: Path, sfx: str) -> None:
     else:
         agg["pareto"] = True
 
-    fig, ax = plt.subplots(figsize=(9, 6))
+    fig, ax = plt.subplots(figsize=(12, 7))
 
     for _, row in agg.iterrows():
         m   = str(row.get("model_name", ""))
@@ -531,7 +626,7 @@ def plot_pareto_scatter(df: pd.DataFrame, out: Path, sfx: str) -> None:
                    c=clr, marker=mrk, s=100, zorder=5, alpha=0.9,
                    edgecolors="gold" if row["pareto"] else "white",
                    linewidths=2.5 if row["pareto"] else 0.5)
-        ax.annotate(f"{m}/{q}",
+        ax.annotate(_fmt_config(f"{m}/{q}"),
                     xy=(row["me"], row["mq"]),
                     xytext=(5, 5), textcoords="offset points", fontsize=7, alpha=0.75)
 
@@ -551,7 +646,8 @@ def plot_pareto_scatter(df: pd.DataFrame, out: Path, sfx: str) -> None:
 
     ax.set_xlabel(f"Mean Wh / 1K Output Tokens ({sfx})", fontsize=10)
     ax.set_ylabel("Mean Quality Score (1–10)", fontsize=10)
-    ax.set_title("Quality vs. Energy — Pareto Scatter", fontsize=12)
+    ax.set_title("Quality vs. Energy — Pareto Scatter")
+    _apply_subtitle(fig, ax)
     _save(fig, out / "pareto_scatter.png")
 
 
@@ -593,7 +689,7 @@ def plot_boxplots(df: pd.DataFrame, out: Path, sfx: str) -> None:
         if not any(len(g) > 0 for g in groups):
             continue
 
-        fig, ax = plt.subplots(figsize=(max(7, len(configs) * 1.8 + 1), 5))
+        fig, ax = plt.subplots(figsize=(12, 8))
         bp = ax.boxplot(
             groups, patch_artist=True, notch=False,
             medianprops={"color": "black", "linewidth": 1.5},
@@ -604,10 +700,11 @@ def plot_boxplots(df: pd.DataFrame, out: Path, sfx: str) -> None:
             patch.set_facecolor(cm.get(str(c), _PALETTE[0]))
             patch.set_alpha(0.7)
         ax.set_xticks(range(1, len(configs) + 1))
-        ax.set_xticklabels(configs, rotation=30, ha="right")
+        ax.set_xticklabels([_fmt_config(c) for c in configs], rotation=30, ha="right")
         ax.set_title(title)
         ax.set_ylabel(ylabel)
         ax.set_axisbelow(True)
+        _apply_subtitle(fig, ax)
         _save(fig, out / fname)
 
 
@@ -635,13 +732,13 @@ def plot_heatmaps(df: pd.DataFrame, out: Path, sfx: str) -> None:
             return
 
         nr, nc = pivot.shape
-        fig, ax = plt.subplots(figsize=(max(6, nc * 2 + 1), max(3, nr * 0.65 + 1.5)))
+        fig, ax = plt.subplots(figsize=(14, 8))
         mat = pivot.to_numpy(dtype=float)
         im  = ax.imshow(mat, aspect="auto", cmap=cmap_name)
         plt.colorbar(im, ax=ax, shrink=0.8)
 
         ax.set_xticks(range(nc))
-        ax.set_xticklabels(pivot.columns.tolist(), rotation=35, ha="right", fontsize=8)
+        ax.set_xticklabels([_fmt_config(c) for c in pivot.columns], rotation=35, ha="right", fontsize=8)
         ax.set_yticks(range(nr))
         ax.set_yticklabels(pivot.index.tolist(), fontsize=9)
 
@@ -653,7 +750,8 @@ def plot_heatmaps(df: pd.DataFrame, out: Path, sfx: str) -> None:
                     txt_color = "white" if v > vmax * 0.65 else "black"
                     ax.text(j, i, f"{v:.2g}", ha="center", va="center",
                             fontsize=7, color=txt_color)
-        ax.set_title(title, fontsize=11)
+        ax.set_title(title)
+        _apply_subtitle(fig, ax)
         plt.tight_layout()
         _save(fig, out / fname)
 
@@ -699,9 +797,10 @@ def plot_rankings(df: pd.DataFrame, out: Path, sfx: str) -> None:
         agg = _agg(df, [cfg], col, ok_mask)
         if agg.empty:
             continue
-        fig, ax = plt.subplots(figsize=(8, max(3, len(agg) * 0.65 + 1.5)))
+        fig, ax = plt.subplots(figsize=(10, 8))
         _horizontal_bar(ax, agg, cfg, f"Ranking: {title}", xlabel,
                         best_high=best_high, cmap=cm)
+        _apply_subtitle(fig, ax)
         _save(fig, out / f"ranking_{stem}.png")
 
 
@@ -733,24 +832,25 @@ def plot_optimization(conv_csv: Path, judge_csv: Path, out: Path,
                if sfx == "corrected" else "total_measured_energy_wh")
 
     specs = [
-        ("score",                  "Quality Score: Phase 1 vs Phase 2",
-         "Mean Score (1–10)", j_ok),
-        (e_col,                    "Energy: Phase 1 vs Phase 2",
-         "Mean Energy (Wh)", c_ok),
+        ("score",                    "Quality Score: Phase 1 vs Phase 2",
+         "Mean Score (1–10)", j_ok,  ".2f"),
+        (e_col,                      "Energy: Phase 1 vs Phase 2",
+         "Mean Energy (Wh)", c_ok,   ".2f"),
         (f"quality_per_joule_{sfx}", "Quality / Joule: Phase 1 vs Phase 2",
-         "Quality / Joule", None),
-        ("total_latency_seconds",  "Latency: Phase 1 vs Phase 2",
-         "Mean Latency (s)", c_ok),
+         "Quality / Joule", None,    ".2f"),
+        ("total_latency_seconds",    "Latency: Phase 1 vs Phase 2",
+         "Mean Latency (s)", c_ok,   ".1f"),
     ]
 
-    for col, title, ylabel, ok_mask in specs:
+    for col, title, ylabel, ok_mask, val_fmt in specs:
         if col not in df_all.columns:
             continue
         agg = _agg(df_all, [cfg_col, ph_col], col, ok_mask)
         if agg.empty:
             continue
-        fig, ax = plt.subplots(figsize=(max(7, len(agg[cfg_col].unique()) * 2 + 1), 5))
-        _grouped_bar(ax, agg, cfg_col, ph_col, title, ylabel, cmap=ph_cm)
+        fig, ax = plt.subplots(figsize=(12, 7))
+        _grouped_bar(ax, agg, cfg_col, ph_col, title, ylabel, cmap=ph_cm, val_fmt=val_fmt)
+        _apply_subtitle(fig, ax)
         fname = "opt_" + col.replace(" ", "_") + "_phase_comparison.png"
         _save(fig, out / fname)
 
