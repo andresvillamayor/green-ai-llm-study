@@ -1,0 +1,81 @@
+categoria,prompt_id,prompt_texto_corto,turno,measured_energy_kwh,measured_energy_wh,inference_time_s,completion_tokens
+writing,81,"Compose an engaging travel blog post about a recent trip to Hawaii, highlighting",1,0.0002665447209477558,0.2665447209477558,73.8129,1024
+writing,81,Rewrite your previous response. Start every sentence with the letter A.,2,0.00032102257912188284,0.32102257912188287,88.8989,1024
+writing,82,Draft a professional email seeking your supervisor's feedback on the 'Quarterly ,1,0.000268064681718394,0.26806468171839404,74.2335,1024
+writing,82,Take a moment to evaluate and critique your own response.,2,0.0003015832416610829,0.3015832416610829,83.5155,1024
+writing,83,Imagine you are writing a blog post comparing two popular smartphone models. Dev,1,0.0001135780906311023,0.1135780906311023,31.4522,437
+writing,83,Take your previous response and rephrase it as a limerick.,2,0.0003240752093891407,0.3240752093891407,89.7441,1024
+writing,84,"Write a persuasive email to convince your introverted friend, who dislikes publi",1,0.0003498264677153586,0.3498264677153586,96.8753,1024
+writing,84,Can you rephrase your previous answer and incorporate a metaphor or simile in ea,2,0.00043339524779269266,0.4333952477926927,120.0174,1024
+writing,85,"Describe a vivid and unique character, using strong imagery and creative languag",1,0.00039214150147900024,0.39214150147900023,108.5934,1024
+writing,85,Revise your previous response and incorporate an allusion to a famous work of li,2,0.00048364936839516735,0.48364936839516737,133.9342,1024
+roleplay,91,Pretend yourself to be Elon Musk in all the following conversations. Speak like ,1,0.00043537528449725263,0.43537528449725266,120.5658,1024
+roleplay,91,How do you like dancing? Can you teach me?,2,0.0005256849972633087,0.5256849972633088,145.5749,1024
+roleplay,92,"Embrace the role of Sheldon from ""The Big Bang Theory"" as we delve into our conv",1,0.0004724971257499658,0.4724971257499658,130.8458,1024
+roleplay,92,Let’s grab dinner in town. Would you like to take bus with me?,2,0.0005653446502232656,0.5653446502232656,156.5578,1024
+roleplay,93,Imagine yourself as a doctor tasked with devising innovative remedies for variou,1,0.0005062928179318766,0.5062928179318766,140.2047,1024
+roleplay,93,But I have been pregnant for 20 weeks and I am allergic to many medicines,2,0.0005940112528991789,0.5940112528991789,164.496,1024
+roleplay,94,Please take on the role of a relationship coach. You'll be provided with details,1,0.0005252999643653025,0.5252999643653025,145.4683,1024
+roleplay,94,My spouse has conducted domestic violence on me but I do not want to call police,2,0.0006133471819220583,0.6133471819220584,169.8508,1024
+roleplay,95,"Please assume the role of an English translator, tasked with correcting and enha",1,0.0005440655440972414,0.5440655440972414,150.6651,1024
+roleplay,95,Ich verstehe nur Bahnhof,2,0.0006294609369680804,0.6294609369680804,174.3132,1024
+extraction,131,"Evaluate the following movie reviews on a scale of 1 to 5, with 1 being very neg",1,0.0006250832090282003,0.6250832090282002,173.1009,1024
+extraction,131,Update your previous reply by including the release date as part of the JSON con,2,0.0007217279883576395,0.7217279883576395,199.8642,1024
+extraction,132,"Given these categories - Literature, History, Science, and Art. Please analyze t",1,0.0006420555081638443,0.6420555081638444,177.8011,1024
+extraction,132,Amend your earlier answer by mentioning a person who is most relevant to each po,2,0.0007034406924815747,0.7034406924815747,194.8001,1024
+extraction,133,Extract the following information from the presented texts: The name of the book,1,0.0006005544971460126,0.6005544971460126,166.3085,1024
+extraction,133,"Reformulate your earlier reply, output it in JSON format and only include books ",2,0.0006792706946600385,0.6792706946600385,188.1067,1024
+extraction,134,"Given the following data, identify the company with the highest profit in 2021 a",1,0.0006185912327178854,0.6185912327178854,171.303,1024
+extraction,134,Which company had the highest profit margin (profit/revenue ratio))?,2,0.0007115480298257194,0.7115480298257194,197.0452,1024
+extraction,135,"Identify the countries, their capitals, and the languages spoken in the followin",1,0.0005997393931709582,0.5997393931709583,166.0828,1024
+extraction,135,Come up with 3 similar examples in the YAML format.,2,0.000712885547991945,0.712885547991945,197.4157,1024
+reasoning,101,Imagine you are participating in a race with a group of people. If you have just,1,0.0006522614672231329,0.6522614672231329,180.6273,1024
+reasoning,101,"If the ""second person"" is changed to ""last person"" in the above question, what w",2,0.0007276963391690638,0.7276963391690638,201.5173,1024
+reasoning,102,You can see a beautiful red house to your left and a hypnotic greenhouse to your,1,0.0006049086804038417,0.6049086804038417,167.5141,1024
+reasoning,102,Does the original question contain any clues to definitively determine the locat,2,0.0007573064879392364,0.7573064879392365,209.7193,1024
+reasoning,103,"Thomas is very healthy, but he has to go to the hospital every day. What could b",1,0.0006464803091726671,0.6464803091726671,179.028,1024
+reasoning,103,Can you explain why the above question is interesting?,2,0.0007242856821693417,0.7242856821693417,200.5728,1024
+reasoning,104,David has three sisters. Each of them has one brother. How many brothers does Da,1,0.0006130635606906683,0.6130635606906684,169.7737,1024
+reasoning,104,If we change the previous question and assume that each sister of David has two ,2,0.000740992693181851,0.740992693181851,205.1992,1024
+reasoning,105,Read the below passage carefully and answer the questions with an explanation: A,1,0.0006682486517153024,0.6682486517153023,185.0546,1024
+reasoning,105,List car colors in order from last to first.,2,0.0007322387489607634,0.7322387489607634,202.7751,1024
+math,111,"The vertices of a triangle are at points (0, 0), (-1, 1), and (3, 3). What is th",1,0.0006255428864707798,0.6255428864707798,173.2282,1024
+math,111,What's area of the circle circumscribing the triangle?,2,0.0007441869187538248,0.7441869187538248,206.0838,1024
+math,112,"A tech startup invests $8000 in software development in the first year, and then",1,0.000624635957246527,0.624635957246527,172.9774,1024
+math,112,"If the startup maintains the same strategy for the third year, investing half of",2,0.0007523391538611822,0.7523391538611822,208.3432,1024
+math,113,"In a survey conducted at a local high school, preferences for a new school color",1,0.0006413163721156887,0.6413163721156887,177.5964,1024
+math,113,"If we select a student liked green, what's the probability that he or she would ",2,0.0006833688301601208,0.6833688301601208,189.2416,1024
+math,114,"When rolling two dice, what is the probability that you roll a total number that",1,0.0005745428530344446,0.5745428530344445,159.1049,1024
+math,114,Continue from previous question. What's the probability that you roll a number w,2,0.0006970923456706001,0.6970923456706001,193.0421,1024
+math,115,"Some people got on a bus at the terminal. At the first bus stop, half of the peo",1,0.0006034884122972349,0.6034884122972349,167.1206,1024
+math,115,"If the ticket is $2 per person, how much is the total money earned by the bus?",2,0.0006612481760585205,0.6612481760585205,183.1157,1024
+coding,121,Develop a Python program that reads all the text files under a directory and ret,1,0.0005647383834308528,0.5647383834308528,156.3897,1024
+coding,121,Can you parallelize it?,2,0.0006794152707165046,0.6794152707165046,188.1468,1024
+coding,122,Write a C++ program to find the nth Fibonacci number using recursion.,1,0.0005955017250737926,0.5955017250737926,164.909,1024
+coding,122,Now we define a sequence of numbers in which each number is the sum of the three,2,0.0006782900074153964,0.6782900074153965,187.835,1024
+coding,123,"Write a simple website in HTML. When a user clicks the button, it shows a random",1,0.0005721494049021324,0.5721494049021324,158.4421,1024
+coding,123,How to use CSS to change the color of jokes to red?,2,0.0006750380311323816,0.6750380311323816,186.9345,1024
+coding,124,Here is a Python function to find the length of the longest common subsequence o,1,0.0005808288742251239,0.5808288742251239,160.8457,1024
+coding,124,"what about this one?  ``` def longest_common_subsequence(X , Y):      # Find len",2,0.0007078613827890816,0.7078613827890816,196.0241,1024
+coding,125,Write a function to find the highest common ancestor (not LCA) of two nodes in a,1,0.0005862035825833015,0.5862035825833014,162.3339,1024
+coding,125,What if it is not a binary tree?,2,0.0006658513900534511,0.6658513900534511,184.3907,1024
+stem,141,"In the field of quantum physics, what is superposition, and how does it relate t",1,0.0005879908150399632,0.5879908150399632,162.829,1024
+stem,141,What assumptions have you made in your response? Are they valid?,2,0.0006699090766387983,0.6699090766387983,185.5142,1024
+stem,142,Consider a satellite that is in a circular orbit around the Earth. The speed of ,1,0.0005785145219629296,0.5785145219629296,160.2048,1024
+stem,142,What are some corner cases or edge cases in your solution? How do you handle the,2,0.0006700964766883522,0.6700964766883523,185.566,1024
+stem,143,Photosynthesis is a vital process for life on Earth. Could you outline the two m,1,0.0005924872565564006,0.5924872565564007,164.0741,1024
+stem,143,How much energy can a tree produce through photosynthesis in its lifetime? Pleas,2,0.0006814015931879944,0.6814015931879944,188.6967,1024
+stem,144,What is the central dogma of molecular biology? What processes are involved? Who,1,0.0005756854764987814,0.5756854764987814,159.4213,1024
+stem,144,Identify and fix one incorrect fact in your previous response.,2,0.0006788747834176116,0.6788747834176115,187.997,1024
+stem,145,Describe the process and write out the balanced chemical equation for the reacti,1,0.0005855667731587627,0.5855667731587627,162.1577,1024
+stem,145,How can we reverse this process?,2,0.0006918666389920567,0.6918666389920567,191.595,1024
+humanities,151,"Provide insights into the correlation between economic indicators such as GDP, i",1,0.0006289290417718478,0.6289290417718478,174.1661,1024
+humanities,151,"Now, explain them again like I'm five.",2,0.0007037419901568562,0.7037419901568561,194.8837,1024
+humanities,152,How do the stages of life shape our understanding of time and mortality?,1,0.0006241702418430491,0.6241702418430491,172.85,1024
+humanities,152,Write an allegorical poem that illustrates the above.,2,0.0007047497119671908,0.7047497119671908,195.1628,1024
+humanities,153,Discuss antitrust laws and their impact on market competition. Compare the antit,1,0.0006398230103406157,0.6398230103406157,177.1829,1024
+humanities,153,Pick one case study and explain it in detail.,2,0.0007091928721477272,0.7091928721477272,196.3932,1024
+humanities,154,"Create a lesson plan that integrates drama, mime or theater techniques into a hi",1,0.0006013217417514513,0.6013217417514514,166.5208,1024
+humanities,154,Provide more details for Day 1 and include three homework questions.,2,0.0007225329588034964,0.7225329588034963,200.0875,1024
+humanities,155,Share ideas for adapting art masterpieces into interactive experiences for child,1,0.000625259010433734,0.625259010433734,173.1497,1024
+humanities,155,Write a concrete plan for your second example. Include budget estimates.,2,0.0006993151688179609,0.6993151688179609,193.6576,1024
