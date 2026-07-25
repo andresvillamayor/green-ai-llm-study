@@ -16,22 +16,37 @@ sys.path.insert(0, str(ROOT))
 from src.config_loader import load_config
 from src.prompt_builder import build_prompt
 
+try:
+    from llama_cpp import Llama
+except ImportError:
+    print("ERROR: llama-cpp-python no instalado. Ver README.md → Instalacion.")
+    sys.exit(1)
 
-CATEGORIAS = ["roleplay"]
-MODEL_NAME = "qwen2.5-7b"        # nombre del modelo segun config.yaml
-CUANTIZACION = "q8"             # "q4" o "q8" — cual corrida se ejecuta ahora
-REPETICIONES = 15                # veces que se repite cada prompt
+try:
+    from codecarbon import EmissionsTracker
+except ImportError:
+    print("ERROR: codecarbon no instalado. pip install codecarbon")
+    sys.exit(1)
+
+CATEGORIAS = ["math"]
+MODEL_NAME = "llama-2-7b"        # nombre del modelo segun config.yaml
+CUANTIZACION = "q8"              # clave de cuantizacion usada en config.yaml ("q4" o "q8")
+REPETICIONES = 1                 # veces que se repite cada prompt
 WARMUP_REPETICIONES = 3          # inferencias descartadas antes de medir oficialmente
                                  # hallazgo empirico: CV baja de 5-6% a <1% desde la 3ra rep
 SUBSET_YAML = ROOT / "data" / "mt_bench" / "subset" / "mt_bench_literal_subset_5_per_category.yaml"  # subset de prompts
 COLORES_BARRAS = ["#F5C518", "#7EC86A", "#4A90D9", "#E34948", "#EB6834"]  # uno por prompt (5)
 COLORES_CATEGORIAS = {"writing": "#F5C518", "reasoning": "#4A90D9", "coding": "#7EC86A"}  # uno por categoria
 COLUMNAS_CSV = [
-    "modelo", "categoria", "prompt_id", "prompt_num", "repeticion",
+    "categoria", "prompt_id", "prompt_num", "repeticion",
     "prompt_texto_corto", "measured_energy_kwh", "measured_energy_mwh",
     "cpu_energy_mwh", "gpu_energy_mwh", "ram_energy_mwh",
     "inference_time_s", "completion_tokens",
 ]  # columnas del CSV de salida
+COLUMNAS_CSV_PRUEBA = [
+    "modelo", "categoria", "prompt_id", "repeticion",
+    "prompt_enviado", "respuesta_texto",
+]
 MAX_CHARS_PROMPT = 80            # caracteres del texto del prompt a guardar en el CSV
 #len(prompts)
 
@@ -56,11 +71,6 @@ def cargar_prompts(ruta_yaml: Path, categoria: str) -> list:
 
 def medir_energia(llm, prompt: str, cfg) -> dict:
     """Ejecuta una inferencia y mide energia con CodeCarbon. Devuelve metricas."""
-    try:
-        from codecarbon import EmissionsTracker
-    except ImportError:
-        print("ERROR: codecarbon no instalado. pip install codecarbon")
-        sys.exit(1)
     tracker = EmissionsTracker(
         project_name="green_ai_analisis_categoria",
         measure_power_secs=1,
@@ -110,6 +120,8 @@ def medir_energia(llm, prompt: str, cfg) -> dict:
         "cpu_energia_mwh"     : _kwh("_total_cpu_energy") * 1_000_000.0,
         "gpu_energia_mwh"     : _kwh("_total_gpu_energy") * 1_000_000.0,
         "ram_energia_mwh"     : _kwh("_total_ram_energy") * 1_000_000.0,
+        "prompt_enviado"      : prompt,
+        "respuesta_texto"     : resultado["choices"][0]["text"],
     }
 
 
@@ -219,15 +231,16 @@ def generar_plots(directorio: Path, categoria: str, datos_mwh: dict, etiquetas: 
             bottom=medias_cpu, zorder=3)
     ax3.bar(posiciones3, medias_ram, width=0.55, color=COLOR_RAM, label="RAM", linewidth=0,
             bottom=[c + g for c, g in zip(medias_cpu, medias_gpu)], zorder=3)
+    totales3 = [c + g + r for c, g, r in zip(medias_cpu, medias_gpu, medias_ram)]
+    umbral3 = max(totales3) * 0.05 if totales3 else 0
     for xi, (cpu, gpu, ram) in enumerate(zip(medias_cpu, medias_gpu, medias_ram)):
-        umbral_barra = (cpu + gpu + ram) * 0.05
-        if cpu > umbral_barra:
+        if cpu > umbral3:
             ax3.text(xi, cpu / 2, f"{cpu:.4f}", ha="center", va="center",
                      fontsize=7.5, color="white", fontweight="bold", zorder=5)
-        if gpu > umbral_barra:
+        if gpu > umbral3:
             ax3.text(xi, cpu + gpu / 2, f"{gpu:.4f}", ha="center", va="center",
                      fontsize=7.5, color="white", fontweight="bold", zorder=5)
-        if ram > umbral_barra:
+        if ram > umbral3:
             ax3.text(xi, cpu + gpu + ram / 2, f"{ram:.4f}", ha="center", va="center",
                      fontsize=7.5, color="#1a1a1a", fontweight="bold", zorder=5)
     ax3.set_xticks(posiciones3)
@@ -318,13 +331,6 @@ def main() -> None:
         if proceso_cafe is not None:
             proceso_cafe.terminate()
         sys.exit(1)
-    try:
-        from llama_cpp import Llama
-    except ImportError:
-        print("ERROR: llama-cpp-python no instalado. Ver README.md → Instalacion.")
-        if proceso_cafe is not None:
-            proceso_cafe.terminate()
-        sys.exit(1)
     print(f"\n  Cargando {ruta_modelo.name}...")
     t_carga = time.perf_counter()
     llm = Llama(
@@ -337,12 +343,12 @@ def main() -> None:
     resumen_categorias = {}  # categoria -> {"media_global", "std_global", "cv_global"}
 
     for CATEGORIA in CATEGORIAS:
-        output_dir = ROOT / "results" / "analisis_categoria" / f"{MODEL_NAME}_{CUANTIZACION}" / CATEGORIA
+        output_dir = ROOT / "results" / "analisis_categoria" / CATEGORIA
         output_csv = output_dir / "resultados_completos.csv"
 
         print(f"\n{'=' * ANCHO}")
         print(f"  GREEN-IA — Analisis de categoria: {CATEGORIA.upper()}")
-        print(f"  Modelo   : {MODEL_NAME} {CUANTIZACION.upper()}  (n_gpu_layers={cfg.n_gpu_layers()}, {cfg.expected_backend()})")
+        print(f"  Modelo   : {MODEL_NAME} Q4  (n_gpu_layers={cfg.n_gpu_layers()}, {cfg.expected_backend()})")
         print(f"  Params   : n_ctx={cfg.n_ctx}  max_tokens={cfg.max_tokens}  temperature={cfg.temperature}  seed={cfg.seed}")
         print(f"  Reps     : {REPETICIONES} por prompt")
         print(f"  Salida   : {output_csv.relative_to(ROOT)}")
@@ -357,6 +363,20 @@ def main() -> None:
         archivo_csv = open(output_csv, "w", newline="", encoding="utf-8")
         escritor = csv.DictWriter(archivo_csv, fieldnames=COLUMNAS_CSV)
         escritor.writeheader()
+        # Este CSV es la entrada para scripts/juez_calidad.py.
+        # El juez toma prompt_enviado y respuesta_texto de cada fila,
+        # los envia a la API de Claude (temperature=0, para juicio
+        # reproducible), y devuelve un accuracy_total mas criterios
+        # desglosados especificos de la categoria. El resultado del
+        # juez se guarda en un CSV SEPARADO ({categoria}_evaluacion_calidad.csv)
+        # para no mezclar datos experimentales (energia, texto generado)
+        # con evaluaciones de un tercero (juicio del modelo juez).
+        output_dir_prueba = ROOT / "results" / "analisis_categoria_prueba"
+        output_csv_prueba = output_dir_prueba / f"{CATEGORIA}_prompts_respuestas.csv"
+        output_dir_prueba.mkdir(parents=True, exist_ok=True)
+        archivo_csv_prueba = open(output_csv_prueba, "w", newline="", encoding="utf-8")
+        escritor_prueba = csv.DictWriter(archivo_csv_prueba, fieldnames=COLUMNAS_CSV_PRUEBA)
+        escritor_prueba.writeheader()
         total, n_hecho = len(preguntas) * REPETICIONES, 0
         energia_por_prompt = defaultdict(list)
         cpu_por_prompt = defaultdict(list)
@@ -392,7 +412,7 @@ def main() -> None:
                     gpu_por_prompt[num_prompt].append(medicion["gpu_energia_mwh"])
                     ram_por_prompt[num_prompt].append(medicion["ram_energia_mwh"])
                     escritor.writerow({
-                        "modelo": f"{MODEL_NAME}-{CUANTIZACION}", "categoria": CATEGORIA, "prompt_id": id_pregunta,
+                        "categoria": CATEGORIA, "prompt_id": id_pregunta,
                         "prompt_num": num_prompt, "repeticion": rep,
                         "prompt_texto_corto": texto_turno1[:MAX_CHARS_PROMPT].replace("\n", " "),
                         "measured_energy_kwh": medicion["energia_kwh"],
@@ -404,10 +424,20 @@ def main() -> None:
                         "completion_tokens": medicion["tokens_generados"],
                     })
                     archivo_csv.flush()
+                    escritor_prueba.writerow({
+                        "modelo"         : f"{MODEL_NAME}-{CUANTIZACION}",
+                        "categoria"      : CATEGORIA,
+                        "prompt_id"      : id_pregunta,
+                        "repeticion"     : rep,
+                        "prompt_enviado" : medicion["prompt_enviado"],
+                        "respuesta_texto": medicion["respuesta_texto"],
+                    })
+                    archivo_csv_prueba.flush()
                     print(f"  [{n_hecho:3d}/{total}]  Prompt {num_prompt}  rep {rep:2d}/{REPETICIONES}"
                           f"  {medicion['tiempo_inferencia_s']:6.1f}s  {medicion['tokens_generados']:4d} tok  {mwh:.4f} mWh")
         finally:
             archivo_csv.close()
+            archivo_csv_prueba.close()
         # Resumen estadistico por prompt
         print(f"\n{'─' * ANCHO}")
         print(f"  {'Prompt':<10}  {'Media (mWh)':>12}  {'Std':>10}  {'CV%':>7}  {'IC95':>10}")
@@ -442,9 +472,7 @@ def main() -> None:
     print(f"\n  Categoria mas consumidora: {cat_max}")
     print(f"  Categoria mas eficiente:   {cat_min}")
     print(f"{SEP}")
-    # Plot comparativo entre categorias
-    print(f"\n  Generando plot comparativo...")
-    generar_plot_comparacion(resumen_categorias)
+    # Plot comparativo entre categorias omitido: prueba de concepto corre una sola categoria.
     # Cerrar caffeinate al terminar
     if proceso_cafe is not None:
         proceso_cafe.terminate()
