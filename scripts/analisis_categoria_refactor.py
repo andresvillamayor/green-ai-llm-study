@@ -1,9 +1,7 @@
 """GREEN-IA — Analisis energetico de categorias MT-Bench. 5 prompts x 15 reps, CodeCarbon, CSV y plots."""
 
 import csv
-import subprocess
 import sys
-import time
 from collections import defaultdict
 from pathlib import Path
 
@@ -16,6 +14,9 @@ sys.path.insert(0, str(Path(__file__).parent))  # permite importar graficos_refa
 from src.config_loader import load_config
 from src.prompt_builder import build_prompt
 from graficos_refactor import calcular_estadisticas, generar_plot_comparacion, generar_plots
+from carga_modelo_refactor import resolver_ruta_modelo, cargar_modelo
+from sistema_refactor import activar_caffeinate, detener_caffeinate
+from medicion_energia_refactor import medir_energia
 
 
 CATEGORIAS = ["humanities"]
@@ -54,105 +55,14 @@ def cargar_prompts(ruta_yaml: Path, categoria: str) -> list:
 
 
 
-def medir_energia(llm, prompt: str, cfg) -> dict:
-    """Ejecuta una inferencia y mide energia con CodeCarbon. Devuelve metricas."""
-    try:
-        from codecarbon import EmissionsTracker
-    except ImportError:
-        print("ERROR: codecarbon no instalado. pip install codecarbon")
-        sys.exit(1)
-    tracker = EmissionsTracker(
-        project_name="green_ai_analisis_categoria",
-        measure_power_secs=1,
-        save_to_file=False,
-        log_level="error",
-        allow_multiple_runs=True,
-        # force_cpu_power y force_ram_power removidos:
-        # con sudo, CodeCarbon usa powermetrics real (verificado:
-        # CPU Power y GPU Power medidos por separado, no estimados)
-        # Esto permite medir CPU, GPU y RAM de forma independiente
-    )
-    tracker.start()
-    t_inicio = time.perf_counter()
-    resultado = llm(
-        prompt,
-        max_tokens=cfg.max_tokens,
-        temperature=cfg.temperature,
-        top_p=cfg.top_p,
-        seed=cfg.seed,
-        echo=cfg.echo,
-        stop=None,
-    )
-    t_fin = time.perf_counter()
-    tracker.stop()
-    # Limpiar KV-cache para que cada medicion sea independiente
-    try:
-        llm.reset()
-    except Exception:
-        pass
-    def _kwh(nombre) -> float:
-        obj = getattr(tracker, nombre, None)
-        if obj is not None and hasattr(obj, "kWh"):
-            try:
-                return float(obj.kWh)
-            except Exception:
-                pass
-        return 0.0
-    kwh_total = _kwh("_total_energy")
-    if kwh_total == 0:
-        kwh_total = _kwh("_total_cpu_energy") + _kwh("_total_gpu_energy") + _kwh("_total_ram_energy")
-    uso = resultado.get("usage", {})
-    return {
-        "tokens_generados"    : int(uso.get("completion_tokens", 0)),
-        "tiempo_inferencia_s" : t_fin - t_inicio,
-        "energia_kwh"         : kwh_total,
-        "energia_mwh"         : kwh_total * 1_000_000.0,
-        "cpu_energia_mwh"     : _kwh("_total_cpu_energy") * 1_000_000.0,
-        "gpu_energia_mwh"     : _kwh("_total_gpu_energy") * 1_000_000.0,
-        "ram_energia_mwh"     : _kwh("_total_ram_energy") * 1_000_000.0,
-    }
-
-
 
 def main() -> None:
     """Ejecuta el experimento completo: carga modelo UNA vez, itera categorias, guarda CSV y genera plots."""
     ANCHO = 68
     cfg = load_config(ROOT / "config.yaml")
-    # Leer ruta del modelo Q4 desde config.yaml
-    with open(ROOT / "config.yaml", encoding="utf-8") as f:
-        config_raw = yaml.safe_load(f) or {}
-    ruta_modelo_str = config_raw.get("models", {}).get(MODEL_NAME, {}).get(
-        CUANTIZACION, f"models/{MODEL_NAME}/{MODEL_NAME}.Q4_K_M.gguf")
-    ruta_modelo = ROOT / ruta_modelo_str
-    # caffeinate evita que macOS entre en reposo durante el experimento
-    proceso_cafe = None
-    if sys.platform == "darwin":
-        try:
-            proceso_cafe = subprocess.Popen(["caffeinate", "-dimsu"])
-            print(f"  caffeinate activo (PID {proceso_cafe.pid})")
-        except Exception:
-            print("  AVISO: no se pudo activar caffeinate")
-    # Verificar modelo antes de cargar
-    if not ruta_modelo.exists():
-        print(f"\nERROR: modelo no encontrado: {ruta_modelo}")
-        if proceso_cafe is not None:
-            proceso_cafe.terminate()
-        sys.exit(1)
-    try:
-        from llama_cpp import Llama
-    except ImportError:
-        print("ERROR: llama-cpp-python no instalado. Ver README.md → Instalacion.")
-        if proceso_cafe is not None:
-            proceso_cafe.terminate()
-        sys.exit(1)
-    print(f"\n  Cargando {ruta_modelo.name}...")
-    t_carga = time.perf_counter()
-    llm = Llama(
-        model_path=str(ruta_modelo), n_ctx=cfg.n_ctx,
-        n_gpu_layers=cfg.n_gpu_layers(), n_threads=cfg.n_threads(),
-        n_batch=cfg.n_batch(), verbose=False,
-    )
-    print(f"  Modelo cargado en {time.perf_counter() - t_carga:.1f}s")
+    ruta_modelo = resolver_ruta_modelo(ROOT, MODEL_NAME, CUANTIZACION)
+    proceso_cafe = activar_caffeinate()
+    llm = cargar_modelo(ruta_modelo, cfg)
 
     resumen_categorias = {}  # categoria -> {"media_global", "std_global", "cv_global"}
 
@@ -265,10 +175,7 @@ def main() -> None:
     # Plot comparativo entre categorias
     print(f"\n  Generando plot comparativo...")
     generar_plot_comparacion(resumen_categorias)
-    # Cerrar caffeinate al terminar
-    if proceso_cafe is not None:
-        proceso_cafe.terminate()
-        print("  caffeinate detenido")
+    detener_caffeinate(proceso_cafe)
     print(f"{'=' * ANCHO}\n")
 
 
