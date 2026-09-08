@@ -7,7 +7,7 @@
 - **Repeticiones:** 15 por prompt + 3 warmup descartadas
 - **Medición:** CodeCarbon 3.2.8 + powermetrics (sudo), desglose CPU/GPU/RAM
 - **Total de mediciones:** 600 (8 categorías × 5 prompts × 15 repeticiones)
-- **Factor de carbono:** Paraguay (0.0 gCO₂/kWh — matriz 99% hidroeléctrica)
+- **Factor de carbono:** Paraguay (26 gCO₂eq/kWh, EMBER 2024 — matriz predominantemente hidroeléctrica)
 
 ---
 
