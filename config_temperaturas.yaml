@@ -1,0 +1,32 @@
+perfiles_generacion:
+  determinista:
+    descripcion: "Temperatura 0.0 - usado en las mediciones oficiales del experimento"
+    llama-2-7b:
+      temperature: 0.0
+      top_p: 1.0
+    llama-2-7b-chat:
+      temperature: 0.0
+      top_p: 1.0
+    qwen2.5-7b:
+      temperature: 0.0
+      top_p: 1.0
+
+  fabricante:
+    descripcion: "Configuracion recomendada oficialmente por cada fabricante"
+    llama-2-7b:
+      temperature: null
+      nota: "No aplica - Llama-2-7B es modelo BASE, sin recomendación 
+             oficial de temperatura de uso conversacional por parte de 
+             Meta. Confirmado: TheBloke declara 'Prompt template: None'; 
+             Meta describe el repo como 'the pretrained model'; metadata 
+             GGUF sin campos de chat template."
+    llama-2-7b-chat:
+      temperature: 0.6
+      top_p: 0.9
+      fuente: "generation_config.json oficial, meta-llama/Llama-2-7b-chat-hf"
+    qwen2.5-7b:
+      temperature: 0.7
+      top_p: 0.8
+      top_k: 20
+      repetition_penalty: 1.05
+      fuente: "generation_config.json oficial, familia Qwen2.5-Instruct"
