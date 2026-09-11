@@ -84,7 +84,7 @@ Este recálculo no requiere nueva ejecución del experimento. Se realizará en u
 
 ### Respaldo directo (mismo hardware: Apple Silicon)
 
-Ahmad, A. et al. "Hot Pixels: Frequency, Power, and Temperature Attacks on GPUs and ARM SoCs." arXiv:2305.12784. https://arxiv.org/pdf/2305.12784
+Taneja, Hritvik et al. "Hot Pixels: Frequency, Power, and Temperature Attacks on GPUs and ARM SoCs." arXiv:2305.12784. https://arxiv.org/pdf/2305.12784
 
 Mide frecuencia, potencia y temperatura en un MacBook Air con Apple M1 (y resultados similares en M2), mostrando cómo el chip alcanza gradualmente el equilibrio térmico bajo carga sostenida. Reportan un hallazgo contraintuitivo similar al observado aquí: las cargas que llegan más rápido al throttling no siempre son las que más potencia consumen en promedio.
 

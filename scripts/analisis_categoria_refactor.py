@@ -32,7 +32,7 @@ COLUMNAS_CSV = [
     "cpu_energy_mwh", "gpu_energy_mwh", "ram_energy_mwh",
     "inference_time_s", "completion_tokens",
 ]  # columnas del CSV de salida
-MAX_CHARS_PROMPT = 80            # caracteres del texto del prompt a guardar en el CSV
+MAX_CHARS_PROMPT = 80  # caracteres del texto del prompt a guardar en el CSV
 
 
 def cargar_prompts(ruta_yaml: Path, categoria: str) -> list:
@@ -113,7 +113,7 @@ def main() -> None:
                     mwh = medicion["energia_mwh"]
                     if mwh != mwh:  # NaN check - bug conocido CodeCarbon/powermetrics (mlco2/codecarbon#985)
                         n_reintentos += 1
-                        print(f"    AVISO: medicion NaN (bug CodeCarbon #985), reintentando...")
+                        print(f"AVISO: medicion NaN (bug CodeCarbon #985), reintentando...")
                         medicion = medir_energia(llm, prompt, cfg)
                         mwh = medicion["energia_mwh"]
                     n_hecho += 1
