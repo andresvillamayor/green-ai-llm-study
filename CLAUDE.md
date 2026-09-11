@@ -113,3 +113,21 @@ GGUF files are not in the repo. Expected paths:
 - `models/llama-2-7b/llama-2-7b.Q8_0.gguf`
 - `models/qwen2.5-7b/Qwen2.5-7B-Instruct-Q4_K_M.gguf`
 - `models/qwen2.5-7b/Qwen2.5-7B-Instruct-Q8_0.gguf`
+
+## Documentación
+
+Notas técnicas y de respaldo científico en `docs/`:
+- `comparacion_q4_vs_q8.md` — comparación de resultados Q4 vs Q8 para Llama-2-7B.
+- `diseno_warmup_adaptativo.md` — diseño del warmup adaptativo para Llama-2-7B.
+- `hallazgo_anomalia_gpu_qwen_extraction.md` — anomalía de GPU detectada en Qwen2.5-7B, categoría extraction.
+- `hallazgo_juez_calidad_math.md` — hallazgo sobre evaluación LLM-as-a-Judge en la categoría math.
+- `hallazgo_repeticion_texto.md` — hallazgo de repetición de texto en Llama-2-7B base.
+- `hallazgo_warmup_termico_llama.md` — hallazgo de warmup térmico insuficiente en Llama-2-7B.
+- `informe_8_categorias.md` — informe de consumo energético por categoría (las 8 categorías MT-Bench).
+- `justificaciones_muestra.md` — justificación de la elección de muestra del experimento.
+- `limitaciones_muestra.md` — limitaciones metodológicas de la muestra.
+- `listado_prompts_categorias.md` — listado de prompts y categorías usados.
+- `respaldo_cientifico_temperatura_cero.md` — respaldo científico (y limitaciones) de usar temperature=0.0 en las mediciones oficiales; incluye notas de verificación sobre 2 citas arXiv aún sin confirmar.
+- `respaldo_cientifico_warmup.md` — respaldo científico del warmup en mediciones de energía.
+- `resumen_tecnico_estudiante.md` — resumen técnico general del proyecto.
+- `tesis_refactor.md` — refactor del pipeline de medición energética.
