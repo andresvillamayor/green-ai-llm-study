@@ -19,9 +19,10 @@ from sistema_refactor import activar_caffeinate, detener_caffeinate
 from medicion_energia_refactor import medir_energia
 
 
-CATEGORIAS = ["humanities"]
-MODEL_NAME = "qwen2.5-7b"        # nombre del modelo segun config.yaml
-CUANTIZACION = "q8"             # "q4" o "q8" — cual corrida se ejecuta ahora
+CATEGORIAS = ["writing"]
+MODEL_NAME = "qwen2.5-7b"         # nombre del modelo segun config.yaml
+CUANTIZACION = "q8"              # "q4" o "q8" — cual corrida se ejecuta ahora
+OUTPUT_BASE_DIR = "results/comparacion_temperaturas/qwen2.5-7b_determinista"  # cambiar según campaña
 REPETICIONES = 15                # veces que se repite cada prompt
 WARMUP_REPETICIONES = 3          # inferencias descartadas antes de medir oficialmente
                                  # hallazgo empirico: CV baja de 5-6% a <1% desde la 3ra rep
@@ -31,9 +32,10 @@ COLUMNAS_CSV = [
     "prompt_texto_corto", "measured_energy_kwh", "measured_energy_mwh",
     "cpu_energy_mwh", "gpu_energy_mwh", "ram_energy_mwh",
     "inference_time_s", "completion_tokens",
+    "prompt_tokens_entrada", "prompt_enviado", "respuesta_texto", "seq_rep_4", "es_warmup",
+    "juez_score", "juez_costo_usd", "temperatura", "tipo_modelo",
 ]  # columnas del CSV de salida
 MAX_CHARS_PROMPT = 80  # caracteres del texto del prompt a guardar en el CSV
-
 
 def cargar_prompts(ruta_yaml: Path, categoria: str) -> list:
     """Carga los prompts de una categoria desde el archivo YAML del subset."""
@@ -67,7 +69,7 @@ def main() -> None:
     resumen_categorias = {}  # categoria -> {"media_global", "std_global", "cv_global"}
 
     for CATEGORIA in CATEGORIAS:
-        output_dir = ROOT / "results" / "analisis_categoria" / f"{MODEL_NAME}_{CUANTIZACION}" / CATEGORIA
+        output_dir = ROOT / OUTPUT_BASE_DIR / f"{MODEL_NAME}_{CUANTIZACION}" / CATEGORIA
         output_csv = output_dir / "resultados_completos.csv"
 
         print(f"\n{'=' * ANCHO}")
@@ -97,10 +99,34 @@ def main() -> None:
             # Warmup: descartar las primeras inferencias para evitar
             # contaminacion por throttling termico (CV alto en primeras reps)
             print(f"\n  Warmup ({WARMUP_REPETICIONES} inferencias descartadas)...")
+            id_prompt_warmup = int(preguntas[0].get("question_id", 0))
             primer_prompt_texto = (preguntas[0].get("turns") or [""])[0]
             prompt_warmup = build_prompt(MODEL_NAME, [{"role": "user", "content": primer_prompt_texto}])
             for w in range(WARMUP_REPETICIONES):
-                medir_energia(llm, prompt_warmup, cfg)
+                rep_warmup = w + 1
+                medicion = medir_energia(llm, prompt_warmup, cfg)
+                escritor.writerow({
+                    "modelo": f"{MODEL_NAME}-{CUANTIZACION}", "categoria": CATEGORIA, "prompt_id": id_prompt_warmup,
+                    "prompt_num": 1, "repeticion": rep_warmup,
+                    "prompt_texto_corto": primer_prompt_texto[:MAX_CHARS_PROMPT].replace("\n", " "),
+                    "measured_energy_kwh": medicion["energia_kwh"],
+                    "measured_energy_mwh": medicion["energia_mwh"],
+                    "cpu_energy_mwh": medicion["cpu_energia_mwh"],
+                    "gpu_energy_mwh": medicion["gpu_energia_mwh"],
+                    "ram_energy_mwh": medicion["ram_energia_mwh"],
+                    "inference_time_s": round(medicion["tiempo_inferencia_s"], 4),
+                    "completion_tokens": medicion["tokens_generados"],
+                    "prompt_tokens_entrada": medicion["prompt_tokens_entrada"],
+                    "prompt_enviado": medicion["prompt_enviado"],
+                    "respuesta_texto": medicion["respuesta_texto"],
+                    "seq_rep_4": medicion["seq_rep_4"],
+                    "es_warmup": True,
+                    "juez_score": "",
+                    "juez_costo_usd": "",
+                    "temperatura": cfg.temperature,
+                    "tipo_modelo": "base" if MODEL_NAME == "llama-2-7b" else "chat",
+                })
+                archivo_csv.flush()
                 print(f"    warmup {w+1}/{WARMUP_REPETICIONES} ok")
             n_reintentos = 0
             for num_prompt, pregunta in enumerate(preguntas, start=1):
@@ -132,6 +158,15 @@ def main() -> None:
                         "ram_energy_mwh": medicion["ram_energia_mwh"],
                         "inference_time_s": round(medicion["tiempo_inferencia_s"], 4),
                         "completion_tokens": medicion["tokens_generados"],
+                        "prompt_tokens_entrada": medicion["prompt_tokens_entrada"],
+                        "prompt_enviado": medicion["prompt_enviado"],
+                        "respuesta_texto": medicion["respuesta_texto"],
+                        "seq_rep_4": medicion["seq_rep_4"],
+                        "es_warmup": False,
+                        "juez_score": "",
+                        "juez_costo_usd": "",
+                        "temperatura": cfg.temperature,
+                        "tipo_modelo": "base" if MODEL_NAME == "llama-2-7b" else "chat",
                     })
                     archivo_csv.flush()
                     print(f"  [{n_hecho:3d}/{total}]  Prompt {num_prompt}  rep {rep:2d}/{REPETICIONES}"
@@ -174,7 +209,7 @@ def main() -> None:
     print(f"{SEP}")
     # Plot comparativo entre categorias
     print(f"\n  Generando plot comparativo...")
-    generar_plot_comparacion(resumen_categorias)
+    generar_plot_comparacion(resumen_categorias, ROOT / OUTPUT_BASE_DIR / f"{MODEL_NAME}_{CUANTIZACION}")
     detener_caffeinate(proceso_cafe)
     print(f"{'=' * ANCHO}\n")
 

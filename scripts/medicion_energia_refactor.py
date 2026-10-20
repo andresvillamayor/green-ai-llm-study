@@ -19,6 +19,19 @@ import time
 from inferencia_refactor import generar_respuesta
 
 
+def calcular_seq_rep_4(llm, texto: str) -> float:
+    """seq-rep-4 (Welleck et al., 2019): fraccion de 4-gramas repetidos
+    sobre los tokens reales generados por el modelo. 0 = sin repeticion,
+    1 = maxima repeticion."""
+    if not texto:
+        return 0.0
+    tokens = llm.tokenize(texto.encode("utf-8"))
+    if len(tokens) < 4:
+        return 0.0
+    cuatrigramas = [tuple(tokens[i:i+4]) for i in range(len(tokens) - 3)]
+    return 1.0 - (len(set(cuatrigramas)) / len(cuatrigramas))
+
+
 def medir_energia(llm, prompt: str, cfg) -> dict:
     """Ejecuta una inferencia y mide su consumo energetico con CodeCarbon.
 
@@ -84,12 +97,19 @@ def medir_energia(llm, prompt: str, cfg) -> dict:
         kwh_total = _kwh("_total_cpu_energy") + _kwh("_total_gpu_energy") + _kwh("_total_ram_energy")
 
     uso = resultado.get("usage", {})
+    respuesta_texto = resultado["choices"][0]["text"]
+    # Fuera del tracker y tras llm.reset(): tokenizar no afecta la medicion de energia
+    seq_rep_4 = calcular_seq_rep_4(llm, respuesta_texto)
     return {
-        "tokens_generados"    : int(uso.get("completion_tokens", 0)),
-        "tiempo_inferencia_s" : t_fin - t_inicio,
-        "energia_kwh"         : kwh_total,
-        "energia_mwh"         : kwh_total * 1_000_000.0,
-        "cpu_energia_mwh"     : _kwh("_total_cpu_energy") * 1_000_000.0,
-        "gpu_energia_mwh"     : _kwh("_total_gpu_energy") * 1_000_000.0,
-        "ram_energia_mwh"     : _kwh("_total_ram_energy") * 1_000_000.0,
+        "prompt_enviado"        : prompt,
+        "tokens_generados"      : int(uso.get("completion_tokens", 0)),
+        "prompt_tokens_entrada" : int(uso.get("prompt_tokens", 0)),
+        "respuesta_texto"       : respuesta_texto,
+        "seq_rep_4"             : seq_rep_4,
+        "tiempo_inferencia_s"   : t_fin - t_inicio,
+        "energia_kwh"           : kwh_total,
+        "energia_mwh"           : kwh_total * 1_000_000.0,
+        "cpu_energia_mwh"       : _kwh("_total_cpu_energy") * 1_000_000.0,
+        "gpu_energia_mwh"       : _kwh("_total_gpu_energy") * 1_000_000.0,
+        "ram_energia_mwh"       : _kwh("_total_ram_energy") * 1_000_000.0,
     }

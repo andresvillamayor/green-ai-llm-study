@@ -28,9 +28,9 @@ except ImportError:
     print("ERROR: codecarbon no instalado. pip install codecarbon")
     sys.exit(1)
 
-CATEGORIAS = ["math"]
-MODEL_NAME = "llama-2-7b"        # nombre del modelo segun config.yaml
-CUANTIZACION = "q8"              # clave de cuantizacion usada en config.yaml ("q4" o "q8")
+CATEGORIAS = ["coding"]
+MODEL_NAME = "llama-2-7b-chat"        # nombre del modelo segun config.yaml
+CUANTIZACION = "q4"              # clave de cuantizacion usada en config.yaml ("q4" o "q8")
 REPETICIONES = 1                 # veces que se repite cada prompt
 WARMUP_REPETICIONES = 3          # inferencias descartadas antes de medir oficialmente
                                  # hallazgo empirico: CV baja de 5-6% a <1% desde la 3ra rep

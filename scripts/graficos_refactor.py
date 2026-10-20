@@ -22,6 +22,18 @@ def calcular_estadisticas(valores: list) -> dict:
     return {"media": media, "std": std, "cv_pct": cv, "ic95": ic95, "n": n}
 
 
+def _aplicar_estilo_ejes(ax) -> None:
+    """Aplica el estilo visual comun (grid y spines) usado en todos los plots."""
+    ax.grid(axis="y", linewidth=0.5, color="#e0e0e0", zorder=0)
+    ax.grid(axis="x", visible=False)
+    ax.set_axisbelow(True)
+    for borde in ("top", "right"):
+        ax.spines[borde].set_visible(False)
+    for borde in ("left", "bottom"):
+        ax.spines[borde].set_color("#cccccc")
+        ax.spines[borde].set_linewidth(0.8)
+
+
 def generar_plots(directorio: Path, categoria: str, datos_mwh: dict, etiquetas: dict,
                   datos_cpu: dict, datos_gpu: dict, datos_ram: dict) -> None:
     """Genera boxplot, barras con std y desglose CPU/GPU/RAM, guardados como PNG."""
@@ -54,14 +66,7 @@ def generar_plots(directorio: Path, categoria: str, datos_mwh: dict, etiquetas: 
     ax1.set_xticklabels(etiquetas_eje, fontsize=10)
     ax1.set_ylabel("Energía (mWh)", fontsize=10)
     ax1.set_title(f"Categoría {categoria.capitalize()} — distribución por repetición", fontsize=12, fontweight="semibold", pad=10)
-    ax1.grid(axis="y", linewidth=0.5, color="#e0e0e0", zorder=0)
-    ax1.grid(axis="x", visible=False)
-    ax1.set_axisbelow(True)
-    for borde in ("top", "right"):
-        ax1.spines[borde].set_visible(False)
-    for borde in ("left", "bottom"):
-        ax1.spines[borde].set_color("#cccccc")
-        ax1.spines[borde].set_linewidth(0.8)
+    _aplicar_estilo_ejes(ax1)
     ruta_plot1 = directorio / "boxplot_repeticiones.png"
     fig1.savefig(ruta_plot1, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig1)
@@ -90,14 +95,7 @@ def generar_plots(directorio: Path, categoria: str, datos_mwh: dict, etiquetas: 
     ax2.set_ylabel("Energía (mWh)", fontsize=10)
     ax2.set_ylim(0, max_y * 1.28)
     ax2.set_title(f"Categoría {categoria.capitalize()}", fontsize=13, fontweight="semibold", pad=10)
-    ax2.grid(axis="y", linewidth=0.5, color="#e0e0e0", zorder=0)
-    ax2.grid(axis="x", visible=False)
-    ax2.set_axisbelow(True)
-    for borde in ("top", "right"):
-        ax2.spines[borde].set_visible(False)
-    for borde in ("left", "bottom"):
-        ax2.spines[borde].set_color("#cccccc")
-        ax2.spines[borde].set_linewidth(0.8)
+    _aplicar_estilo_ejes(ax2)
     ruta_plot2 = directorio / "barras_con_std.png"
     fig2.savefig(ruta_plot2, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig2)
@@ -138,14 +136,7 @@ def generar_plots(directorio: Path, categoria: str, datos_mwh: dict, etiquetas: 
     ax3.set_title(f"Desglose energético por componente — Categoría {categoria.capitalize()}",
                   fontsize=12, fontweight="semibold", pad=10)
     ax3.legend(loc="upper right", frameon=False, fontsize=10)
-    ax3.grid(axis="y", linewidth=0.5, color="#e0e0e0", zorder=0)
-    ax3.grid(axis="x", visible=False)
-    ax3.set_axisbelow(True)
-    for borde in ("top", "right"):
-        ax3.spines[borde].set_visible(False)
-    for borde in ("left", "bottom"):
-        ax3.spines[borde].set_color("#cccccc")
-        ax3.spines[borde].set_linewidth(0.8)
+    _aplicar_estilo_ejes(ax3)
     ruta_plot3 = directorio / "desglose_cpu_gpu_ram.png"
     fig3.savefig(ruta_plot3, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig3)
@@ -155,7 +146,7 @@ def generar_plots(directorio: Path, categoria: str, datos_mwh: dict, etiquetas: 
         print(f"  Plot 3: {ruta_plot3}")
 
 
-def generar_plot_comparacion(datos_resumen: dict) -> None:
+def generar_plot_comparacion(datos_resumen: dict, output_dir: Path) -> None:
     """Genera barras verticales comparando energia media de las 3 categorias."""
     try:
         import matplotlib
@@ -185,15 +176,61 @@ def generar_plot_comparacion(datos_resumen: dict) -> None:
     ax.set_ylabel("Energía media (mWh)", fontsize=10)
     ax.set_ylim(0, max_y * 1.28)
     ax.set_title("Comparacion de categorias — Energia media", fontsize=13, fontweight="semibold", pad=10)
-    ax.grid(axis="y", linewidth=0.5, color="#e0e0e0", zorder=0)
-    ax.grid(axis="x", visible=False)
-    ax.set_axisbelow(True)
-    for borde in ("top", "right"):
-        ax.spines[borde].set_visible(False)
-    for borde in ("left", "bottom"):
-        ax.spines[borde].set_color("#cccccc")
-        ax.spines[borde].set_linewidth(0.8)
-    ruta_plot = ROOT / "results" / "analisis_categoria" / "comparacion_categorias.png"
+    _aplicar_estilo_ejes(ax)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    ruta_plot = output_dir / "comparacion_categorias.png"
     fig.savefig(ruta_plot, dpi=300, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"  Plot comparacion: {ruta_plot.relative_to(ROOT)}")
+
+
+def generar_plot_tokens(output_dir: Path, categoria: str, prompt_tokens_por_prompt: dict,
+                         completion_tokens_por_prompt: dict, etiquetas_prompt: dict) -> None:
+    """Genera barras agrupadas de tokens de entrada vs salida, una pareja por prompt."""
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except ImportError:
+        print("\n  AVISO: matplotlib no instalado — plot de tokens omitido.")
+        return
+    COLOR_ENTRADA = "#4A90D9"  # azul
+    COLOR_SALIDA = "#EB6834"   # naranja
+    numeros_prompt = sorted(prompt_tokens_por_prompt.keys())
+    etiquetas_eje = [etiquetas_prompt[p] for p in numeros_prompt]
+    medias_entrada = [calcular_estadisticas(prompt_tokens_por_prompt[p])["media"] for p in numeros_prompt]
+    medias_salida = [calcular_estadisticas(completion_tokens_por_prompt[p])["media"] for p in numeros_prompt]
+    fig, ax = plt.subplots(figsize=(10, 6))
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
+    posiciones = list(range(len(numeros_prompt)))
+    ancho = 0.35
+    pos_entrada = [p - ancho / 2 for p in posiciones]
+    pos_salida = [p + ancho / 2 for p in posiciones]
+    ax.bar(pos_entrada, medias_entrada, width=ancho, color=COLOR_ENTRADA,
+           label="Tokens de entrada", linewidth=0, zorder=3)
+    ax.bar(pos_salida, medias_salida, width=ancho, color=COLOR_SALIDA,
+           label="Tokens de salida", linewidth=0, zorder=3)
+    max_y = max(medias_entrada + medias_salida) if (medias_entrada or medias_salida) else 1.0
+    desplazamiento = max_y * 0.02
+    for xi, valor in zip(pos_entrada, medias_entrada):
+        ax.text(xi, valor + desplazamiento, f"{valor:.0f}", ha="center", va="bottom",
+                fontsize=8.5, color="#1a1a1a", zorder=5)
+    for xi, valor in zip(pos_salida, medias_salida):
+        ax.text(xi, valor + desplazamiento, f"{valor:.0f}", ha="center", va="bottom",
+                fontsize=8.5, color="#1a1a1a", zorder=5)
+    ax.set_xticks(posiciones)
+    ax.set_xticklabels(etiquetas_eje, fontsize=10)
+    ax.set_ylabel("Tokens", fontsize=10)
+    ax.set_ylim(0, max_y * 1.20)
+    ax.set_title(f"Categoría {categoria.capitalize()} — tokens de entrada vs salida",
+                 fontsize=12, fontweight="semibold", pad=10)
+    ax.legend(loc="upper right", frameon=False, fontsize=10)
+    _aplicar_estilo_ejes(ax)
+    ruta_plot = output_dir / "tokens_entrada_salida.png"
+    fig.savefig(ruta_plot, dpi=300, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+    try:
+        print(f"  Plot tokens: {ruta_plot.relative_to(ROOT)}")
+    except ValueError:
+        print(f"  Plot tokens: {ruta_plot}")
