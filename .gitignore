@@ -61,3 +61,8 @@ results/smoke_test/
 data/mt_bench/official/question.jsonl
 data/mt_bench/official/judge_prompts.jsonl
 results/metadata/
+
+# Copias de seguridad locales
+results_bck_18_09_26/
+results/_backup_q4_determinista_pre_fix/
+.claude/
