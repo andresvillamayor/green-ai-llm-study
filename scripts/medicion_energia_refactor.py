@@ -16,7 +16,7 @@ Metodologia de medicion respaldada en:
 import sys
 import time
 
-from inferencia_refactor import generar_respuesta
+from inferencia_refactor import generar_respuesta, generar_respuesta_muestreo
 
 
 def calcular_seq_rep_4(llm, texto: str) -> float:
@@ -32,7 +32,8 @@ def calcular_seq_rep_4(llm, texto: str) -> float:
     return 1.0 - (len(set(cuatrigramas)) / len(cuatrigramas))
 
 
-def medir_energia(llm, prompt: str, cfg) -> dict:
+def medir_energia(llm, prompt: str, cfg, temperatura: float = None,
+                  semilla: int = None) -> dict:
     """Ejecuta una inferencia y mide su consumo energetico con CodeCarbon.
 
     El tracker envuelve exactamente la operacion de inferencia (ni antes
@@ -54,6 +55,11 @@ def medir_energia(llm, prompt: str, cfg) -> dict:
         llm: instancia de Llama ya cargada.
         prompt: texto ya formateado con la plantilla de chat del modelo.
         cfg: ExperimentConfig con los hiperparametros de generacion.
+        temperatura: opcional. Si se pasa junto con semilla, la inferencia
+            usa generar_respuesta_muestreo() con esos valores en lugar de
+            los de cfg.
+        semilla: opcional, ver temperatura. Si ambos son None, el
+            comportamiento es el determinista de siempre.
 
     Returns:
         dict con tokens generados, tiempo de inferencia, y energia total
@@ -74,7 +80,14 @@ def medir_energia(llm, prompt: str, cfg) -> dict:
     )
     tracker.start()
     t_inicio = time.perf_counter()
-    resultado = generar_respuesta(llm, prompt, cfg)
+    if temperatura is None and semilla is None:
+        resultado = generar_respuesta(llm, prompt, cfg)
+    else:
+        resultado = generar_respuesta_muestreo(
+            llm, prompt, cfg,
+            cfg.temperature if temperatura is None else temperatura,
+            cfg.seed if semilla is None else semilla,
+        )
     t_fin = time.perf_counter()
     tracker.stop()
 

@@ -22,7 +22,12 @@ from medicion_energia_refactor import medir_energia
 CATEGORIAS = ["writing"]
 MODEL_NAME = "qwen2.5-7b"         # nombre del modelo segun config.yaml
 CUANTIZACION = "q8"              # "q4" o "q8" — cual corrida se ejecuta ahora
+ESQUEMA = "determinista"         # o "temperatura_oficial"
+TEMPERATURA_OFICIAL = {"llama-2-7b-chat": 0.6, "qwen2.5-7b": 0.7}
+SEMILLA_BASE = 42                # semilla de la repeticion 1; rep n usa SEMILLA_BASE + (n - 1)
 OUTPUT_BASE_DIR = "results/comparacion_temperaturas/qwen2.5-7b_determinista"  # cambiar según campaña
+if ESQUEMA == "temperatura_oficial":
+    OUTPUT_BASE_DIR = f"results/comparacion_temperaturas/{MODEL_NAME}_fabricante"
 REPETICIONES = 15                # veces que se repite cada prompt
 WARMUP_REPETICIONES = 3          # inferencias descartadas antes de medir oficialmente
                                  # hallazgo empirico: CV baja de 5-6% a <1% desde la 3ra rep
@@ -33,7 +38,7 @@ COLUMNAS_CSV = [
     "cpu_energy_mwh", "gpu_energy_mwh", "ram_energy_mwh",
     "inference_time_s", "completion_tokens",
     "prompt_tokens_entrada", "prompt_enviado", "respuesta_texto", "seq_rep_4", "es_warmup",
-    "juez_score", "juez_costo_usd", "temperatura", "tipo_modelo",
+    "juez_score", "juez_costo_usd", "temperatura", "tipo_modelo", "semilla",
 ]  # columnas del CSV de salida
 MAX_CHARS_PROMPT = 80  # caracteres del texto del prompt a guardar en el CSV
 
@@ -58,6 +63,27 @@ def cargar_prompts(ruta_yaml: Path, categoria: str) -> list:
 
 
 
+def _args_muestreo(temperatura: float, semilla: int) -> tuple:
+    """Argumentos opcionales para medir_energia: vacios en el esquema determinista,
+    para que siga usando generar_respuesta() exactamente como antes."""
+    return () if ESQUEMA == "determinista" else (temperatura, semilla)
+
+
+def parametros_muestreo(cfg, repeticion: int) -> tuple:
+    """Devuelve (temperatura, semilla) para medir_energia y para el CSV.
+
+    Esquema determinista: los valores de cfg (0.0 y 42) en todas las reps.
+    Esquema temperatura_oficial: temperatura segun MODEL_NAME y semilla
+    SEMILLA_BASE + (repeticion - 1).
+    """
+    if ESQUEMA == "determinista":
+        return cfg.temperature, cfg.seed
+    if ESQUEMA == "temperatura_oficial":
+        return TEMPERATURA_OFICIAL[MODEL_NAME], SEMILLA_BASE + (repeticion - 1)
+    print(f"\nERROR: ESQUEMA desconocido: {ESQUEMA}")
+    sys.exit(1)
+
+
 def main() -> None:
     """Ejecuta el experimento completo: carga modelo UNA vez, itera categorias, guarda CSV y genera plots."""
     ANCHO = 68
@@ -75,7 +101,7 @@ def main() -> None:
         print(f"\n{'=' * ANCHO}")
         print(f"  GREEN-IA — Analisis de categoria: {CATEGORIA.upper()}")
         print(f"  Modelo   : {MODEL_NAME} {CUANTIZACION.upper()}  (n_gpu_layers={cfg.n_gpu_layers()}, {cfg.expected_backend()})")
-        print(f"  Params   : n_ctx={cfg.n_ctx}  max_tokens={cfg.max_tokens}  temperature={cfg.temperature}  seed={cfg.seed}")
+        print(f"  Params   : n_ctx={cfg.n_ctx}  max_tokens={cfg.max_tokens}  temperature={parametros_muestreo(cfg, 1)[0]}  seed={parametros_muestreo(cfg, 1)[1]}  esquema={ESQUEMA}")
         print(f"  Reps     : {REPETICIONES} por prompt")
         print(f"  Salida   : {output_csv.relative_to(ROOT)}")
         print(f"{'=' * ANCHO}")
@@ -104,7 +130,8 @@ def main() -> None:
             prompt_warmup = build_prompt(MODEL_NAME, [{"role": "user", "content": primer_prompt_texto}])
             for w in range(WARMUP_REPETICIONES):
                 rep_warmup = w + 1
-                medicion = medir_energia(llm, prompt_warmup, cfg)
+                temp_uso, semilla_uso = parametros_muestreo(cfg, rep_warmup)
+                medicion = medir_energia(llm, prompt_warmup, cfg, *_args_muestreo(temp_uso, semilla_uso))
                 escritor.writerow({
                     "modelo": f"{MODEL_NAME}-{CUANTIZACION}", "categoria": CATEGORIA, "prompt_id": id_prompt_warmup,
                     "prompt_num": 1, "repeticion": rep_warmup,
@@ -123,8 +150,9 @@ def main() -> None:
                     "es_warmup": True,
                     "juez_score": "",
                     "juez_costo_usd": "",
-                    "temperatura": cfg.temperature,
+                    "temperatura": temp_uso,
                     "tipo_modelo": "base" if MODEL_NAME == "llama-2-7b" else "chat",
+                    "semilla": semilla_uso,
                 })
                 archivo_csv.flush()
                 print(f"    warmup {w+1}/{WARMUP_REPETICIONES} ok")
@@ -135,12 +163,13 @@ def main() -> None:
                 texto_turno1 = turnos[0] if turnos else ""
                 prompt = build_prompt(MODEL_NAME, [{"role": "user", "content": texto_turno1}])
                 for rep in range(1, REPETICIONES + 1):
-                    medicion = medir_energia(llm, prompt, cfg)
+                    temp_uso, semilla_uso = parametros_muestreo(cfg, rep)
+                    medicion = medir_energia(llm, prompt, cfg, *_args_muestreo(temp_uso, semilla_uso))
                     mwh = medicion["energia_mwh"]
                     if mwh != mwh:  # NaN check - bug conocido CodeCarbon/powermetrics (mlco2/codecarbon#985)
                         n_reintentos += 1
                         print(f"AVISO: medicion NaN (bug CodeCarbon #985), reintentando...")
-                        medicion = medir_energia(llm, prompt, cfg)
+                        medicion = medir_energia(llm, prompt, cfg, *_args_muestreo(temp_uso, semilla_uso))
                         mwh = medicion["energia_mwh"]
                     n_hecho += 1
                     energia_por_prompt[num_prompt].append(mwh)
@@ -165,8 +194,9 @@ def main() -> None:
                         "es_warmup": False,
                         "juez_score": "",
                         "juez_costo_usd": "",
-                        "temperatura": cfg.temperature,
+                        "temperatura": temp_uso,
                         "tipo_modelo": "base" if MODEL_NAME == "llama-2-7b" else "chat",
+                        "semilla": semilla_uso,
                     })
                     archivo_csv.flush()
                     print(f"  [{n_hecho:3d}/{total}]  Prompt {num_prompt}  rep {rep:2d}/{REPETICIONES}"
