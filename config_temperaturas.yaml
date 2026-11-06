@@ -13,6 +13,10 @@ perfiles_generacion:
 
   fabricante:
     descripcion: "Configuracion recomendada oficialmente por cada fabricante"
+    # NOTA: el esquema usado en la campana (carpetas *_fabricante) cambio SOLO la
+    # temperatura (Llama 0.6, Qwen 0.7). top_p quedo en 1.0 y el resto en los
+    # valores por defecto de llama.cpp. Los demas valores de abajo son
+    # documentales y NO se aplicaron en la campana.
     llama-2-7b:
       temperature: null
       nota: "No aplica - Llama-2-7B es modelo BASE, sin recomendación 
@@ -23,10 +27,10 @@ perfiles_generacion:
     llama-2-7b-chat:
       temperature: 0.6
       top_p: 0.9
-      fuente: "generation_config.json oficial, meta-llama/Llama-2-7b-chat-hf"
+      fuente: "Script de ejemplo de Meta (example_chat_completion.py): temperature 0.6, top_p 0.9. No se usa el generation_config.json de Hugging Face: hay reportes de que sus valores aparecen intercambiados."
     qwen2.5-7b:
       temperature: 0.7
       top_p: 0.8
-      top_k: 20
+      top_k: 20  # pendiente de verificar contra generation_config.json
       repetition_penalty: 1.05
-      fuente: "generation_config.json oficial, familia Qwen2.5-Instruct"
+      fuente: "Documentacion oficial de Qwen2.5 (temperature 0.7, top_p 0.8, repetition_penalty 1.05); top_k 20 pendiente de verificar contra generation_config.json"
