@@ -1,0 +1,5 @@
+esquema,modelo,n_con_ganador,victorias_q4,victorias_q8,p_valor,empates_excluidos,errores_excluidos
+determinista,llama-2-7b-chat,15,8,7,1.0,25,0
+determinista,qwen2.5-7b,17,8,9,1.0,23,0
+fabricante,llama-2-7b-chat,25,14,11,0.69,15,0
+fabricante,qwen2.5-7b,21,14,7,0.1892,19,0

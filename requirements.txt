@@ -24,6 +24,8 @@ pyyaml
 tqdm
 psutil
 anthropic
+openai
+google-genai
 python-dotenv
 matplotlib
 scipy

@@ -1,0 +1,13 @@
+juez,esquema,modelo,gana_q4,gana_q8,empate,pares_con_error,n_pares
+anthropic,determinista,llama-2-7b-chat,4,7,27,2,40
+anthropic,determinista,qwen2.5-7b,6,3,30,1,40
+anthropic,fabricante,llama-2-7b-chat,9,8,20,3,40
+anthropic,fabricante,qwen2.5-7b,10,6,24,0,40
+openai,determinista,llama-2-7b-chat,15,12,13,0,40
+openai,determinista,qwen2.5-7b,11,12,17,0,40
+openai,fabricante,llama-2-7b-chat,15,13,12,0,40
+openai,fabricante,qwen2.5-7b,17,6,17,0,40
+google,determinista,llama-2-7b-chat,11,8,21,0,40
+google,determinista,qwen2.5-7b,10,10,20,0,40
+google,fabricante,llama-2-7b-chat,15,11,14,0,40
+google,fabricante,qwen2.5-7b,11,9,20,0,40

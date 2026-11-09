@@ -13,7 +13,6 @@ data/mt_bench/official/judge_prompts.jsonl
 
 # ─── Generated experiment outputs ────────────────────────────────────────────
 results/raw/
-results/judge/
 results/summary/
 results/optimization/
 results/plots/
@@ -66,3 +65,10 @@ results/metadata/
 results_bck_18_09_26/
 results/_backup_q4_determinista_pre_fix/
 .claude/
+
+# Claves de API (nunca versionar; solo .env.example)
+.env
+.env.*
+!.env.example
+data/mt_bench/official/reference_answer_gpt-4.jsonl
+results/judge_piloto*/

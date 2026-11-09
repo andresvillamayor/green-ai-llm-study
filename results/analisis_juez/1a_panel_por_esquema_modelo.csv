@@ -1,0 +1,5 @@
+esquema,modelo,gana_q4,gana_q8,empate,error,n_pares
+determinista,llama-2-7b-chat,8,7,25,0,40
+determinista,qwen2.5-7b,8,9,23,0,40
+fabricante,llama-2-7b-chat,14,11,15,0,40
+fabricante,qwen2.5-7b,14,7,19,0,40
